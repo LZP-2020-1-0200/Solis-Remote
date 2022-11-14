@@ -1,0 +1,58 @@
+
+SOLISresponse$=""
+SaveDir$=""
+
+//returns "" if read line has to be passed to stage,
+//otherwise returns the response string
+function ~HandleSolisCommands(line$)
+	spaceIndex=instr(line$," ")
+	command$=line$
+	args$=""
+	if (spaceIndex!=0) then
+		command$=left$(line$,spaceIndex-1)
+		args$=mid$(line$,spaceIndex+1, len(line$)-spaceIndex)
+	endif
+	
+	HandleSolisCommands=1		
+	SOLISresponse$=""
+	
+	if (strcomp(command$,"RUN")==0) then
+		HandleSolisCommands=0
+		SOLISresponse$="OK"
+		run()
+		fileName$=""
+		if (spaceIndex!=0) then
+			fileName$=SaveDir$+"\"+args$
+		else
+			fileName$=SaveDir$+"\"+str$(time())+".asc"
+		endif
+
+		SaveAsciiXY(#0,fileName$,2,1)
+		print(fileName$)
+		closeWindow(#0)
+	endif
+	if (strcomp(command$,"SDIR")==0) then
+		HandleSolisCommands=0
+		SaveDir$=args$
+		SOLISresponse$="OK"
+		
+		//closeWindow(#0)
+	endif
+	
+	
+return
+
+
+while(1)
+	//reads the input
+	comread(1,pyInput$)
+	if (~HandleSolisCommands(pyInput$)) then
+		comwrite(3,pyInput$)
+		comread(3,stageResponse$)
+		comwrite(1,stageResponse$)
+	else
+		comwrite(1,SOLISresponse$)
+	endif
+	
+	
+wend
