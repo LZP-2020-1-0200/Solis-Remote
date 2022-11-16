@@ -14,7 +14,8 @@ import classes.coordinate
 from collections.abc import Callable
 from os.path import relpath
 import json
-import datetime;
+import datetime
+import math
 
 sessionData={}
 dir=None
@@ -83,15 +84,17 @@ def run():
 
         if not (experimentDir==None):
             tp=Toplevel()
+            tp.title("Select an environment")
             experimentMedium=StringVar()
-            for med in configuration.mediums:
+            s=math.ceil(math.sqrt(len(configuration.mediums)))
+            for ind, med in enumerate(configuration.mediums):
                 Radiobutton(tp, text = med, variable = experimentMedium,
                         value = med, indicator = 0,
-                        background = "light blue").pack(fill=X, ipady = 5)
+                        background = "light blue").grid(row=ind//s,column=ind%s,ipady = 5,ipadx=5,sticky="news")
             tp.wait_variable(experimentMedium)
             var = StringVar()
             button = Button(tp, text="Set", command=lambda: var.set(1))
-            button.pack(fill=X, ipady = 5)
+            button.grid(row=s,column=0,columnspan=s,sticky="news",ipady=5, ipadx = 5)
             button.wait_variable(var)
             sessionData["experiments"].append({"folder":experimentDir,"name":experimentMedium.get(),"timestamp":str(datetime.datetime.now())})
             updateSessionData()
@@ -125,7 +128,7 @@ def generateIn(parentFrame):
 
     startB = Button(parentFrame,text="Launch experiment", font=TEXT_FONT, command=run)
     startB.grid(row=2,column=2, padx=5)
-    startB.grid_forget()
+    startB.grid_remove()
 
     
 

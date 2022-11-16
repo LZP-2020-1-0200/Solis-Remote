@@ -22,6 +22,7 @@ from tkinterGUIS.configuration import TITLE_FONT
 
 # creating main tkinter window/toplevel
 master = Tk()
+master.title("SolisXY GUI")
 master.columnconfigure(tuple(range(60)), weight=1)
 master.rowconfigure(tuple(range(30)), weight=1)
 
@@ -29,7 +30,7 @@ connectionFrame=Frame(master,bd=3,highlightbackground="blue",relief=SOLID)
 connectionFrame.grid(row=0,column=0,sticky="news")
 connection.generateIn(connectionFrame,mover)
 
-#Set location GUI setup
+#Set location GUI setup TODO: remove when confirmed unnecessary
 #setLocationFrame=Frame(master,bd=3,highlightbackground="blue",relief=SOLID)
 #setLocationFrame.grid(row=1,column=0,sticky="news")
 #setLoc.generateIn(setLocationFrame)

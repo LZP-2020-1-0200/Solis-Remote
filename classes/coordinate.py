@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import csv
-from math import atan2, cos, degrees, radians, sin
+from math import atan2, cos, degrees, radians, sin, sqrt
 
 from classes.logger import Logger
 
@@ -137,3 +137,15 @@ class Coordinate:
 
     def __lt__(self, other: Coordinate):
         return (self.y) < (other.y)
+    
+    def mag(self)->float:
+        return sqrt(self.x**2+self.y**2)
+    
+    def mag_sq(self)->float:
+        return self.x**2+self.y**2
+
+    def dot(self,other:Coordinate)->float:
+        return self.x*other.x+self.y*other.y
+    
+    def asComponentOf(self,other:Coordinate)->float:
+        return self.dot(other)/other.mag_sq()
