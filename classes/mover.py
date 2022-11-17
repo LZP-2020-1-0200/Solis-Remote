@@ -33,6 +33,7 @@ class MicroscopeMover:
         return True
 
     def get_coordinates(self) -> Coordinate:
+        
         self.serial.write("P \r".encode())
         coord_string = self.serial.read_until(b"\r").decode().split(",")[:2]
         cord = Coordinate(int(coord_string[0]), int(coord_string[1]))

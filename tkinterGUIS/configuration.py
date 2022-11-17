@@ -6,6 +6,8 @@ TITLE_FONT=(_FONT,TITLE_SIZE)
 TEXT_FONT=(_FONT,TEXT_SIZE)
 
 mediums=[]
-with open("./mediums.txt") as file:
+with open("./media_list.txt") as file:
     for line in file:
         mediums.append(line.rstrip())
+
+referenceNames=["dark","white","darkForWhite"]

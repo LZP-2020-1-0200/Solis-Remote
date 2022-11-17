@@ -58,7 +58,7 @@ def generateIn(parentFrame):
     Button(butFrame,text="🢆",font=buttonFont,command=lambda: relMove(1,1)).grid(row=3,column=2,sticky="news")
     
 
-    stepLabel = Label(parentFrame, text = "Step",font=TEXT_FONT)
+    stepLabel = Label(parentFrame, text = "Step (in μm):",font=TEXT_FONT)
     stepLabel.grid(row = 4, column = 0, sticky = W, pady = 5,padx=5)
 
     vcmd = (parentFrame.register(validator),'%P')

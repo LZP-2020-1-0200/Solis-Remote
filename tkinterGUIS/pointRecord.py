@@ -12,7 +12,6 @@ from tkinterGUIS.recordingMethods import markers
 
 parent:Frame=None
 regMethod:IntVar=None
-pointCounter:StringVar=None
 methodWidgets:list[list[Widget]]=[]
 radios:list[Radiobutton]=[]
 
@@ -32,9 +31,9 @@ def methodChange():
     pass
 
 def generateIn(parentFrame):
-    global parent, methodWidgets, regMethod,pointCounter, radios
+    global parent, methodWidgets, regMethod, radios
     regMethod=IntVar()
-    pointCounter=StringVar()
+    lineRecord.pointCounter=StringVar()
     markers.markerText=StringVar()
     markers.updateText()
 
@@ -81,14 +80,45 @@ def generateIn(parentFrame):
     lineUndoButton = Button(parentFrame,text="Undo last point", font=TEXT_FONT, command=lineRecord.unregPoint)
     lineUndoButton.grid(row=3,column=1,padx=5)
     
-    ptCountLabel=Label(parentFrame,text="Enter amount of points")
-    ptCountLabel.grid(row=4,column=0, padx=5)
+    linePtCountLabel=Label(parentFrame,text="Enter amount of points")
+    linePtCountLabel.grid(row=4,column=0, padx=5)
 
-    ptCount=Entry(parentFrame,textvariable=pointCounter)
-    ptCount.grid(row=4,column=1, padx=5)
-    pointCounter.trace_add("write", lambda a,b,c: lineRecord.counterUpdate(pointCounter))
+    linePtCount=Entry(parentFrame,textvariable=lineRecord.pointCounter)
+    linePtCount.grid(row=4,column=1, padx=5)
+    lineRecord.pointCounter.trace_add("write", lambda a,b,c: lineRecord.counterUpdate(lineRecord.pointCounter))
 
-    methodWidgets=[[markerFrame],[registerButton,undoButton],[lineRegisterButton,lineUndoButton,ptCountLabel,ptCount]]
+    #Square
+    radioLine=Radiobutton(parentFrame,text="Square Registration",value=3,variable=regMethod,command=methodChange)
+    radioLine.grid(row=2,column=2,sticky="news")
+    radioLine.grid_remove()
+    radios.append(radioLine)
+
+    squareRegister1Button = Button(parentFrame,text="Register first point", font=TEXT_FONT, command=lineRecord.regPoint)
+    squareRegister1Button.grid(row=3,column=0, padx=5)
+
+    squareRegister2Button = Button(parentFrame,text="Register second point", font=TEXT_FONT, command=lineRecord.unregPoint)
+    squareRegister2Button.grid(row=3,column=1,padx=5)
+    
+    squarePtCountLabel=Label(parentFrame,text="Enter amount of points")
+    squarePtCountLabel.grid(row=4,column=0, padx=5)
+
+    squarePtCount=Entry(parentFrame,textvariable=lineRecord.pointCounter)
+    squarePtCount.grid(row=4,column=1, padx=5)
+
+    squareRowCountLabel=Label(parentFrame,text="Enter amount of points")
+    squareRowCountLabel.grid(row=4,column=0, padx=5)
+
+    squareRowCount=Entry(parentFrame,textvariable=lineRecord.pointCounter)
+    squareRowCount.grid(row=4,column=1, padx=5)
+    #pointCounter.trace_add("write", lambda a,b,c: lineRecord.counterUpdate(pointCounter))
+
+    methodWidgets=[
+        [markerFrame],
+        [registerButton,undoButton],
+        [lineRegisterButton,lineUndoButton,linePtCountLabel,linePtCount],
+        [squareRegister1Button,squareRegister2Button,squarePtCountLabel,squarePtCount,squareRowCountLabel,squareRowCount]
+    
+    ]
     regMethod.set(0)
     methodChange()
     #radioManualPoints.select()

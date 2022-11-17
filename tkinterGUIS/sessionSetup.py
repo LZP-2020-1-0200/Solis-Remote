@@ -10,6 +10,7 @@ def sessionSetup(dir,points):
         json_file={}
         json_file["points"]=[]
         json_file["experiments"]=[]
+        json_file["refs"]=[]
         i=1
         for pt in points:
             json_file["points"].append({"x":pt[0],"y":pt[1],"filename":f"{str(i).zfill(5)}.asc"})

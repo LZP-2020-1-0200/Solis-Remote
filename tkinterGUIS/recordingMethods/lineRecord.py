@@ -8,6 +8,8 @@ from tkinter import *
 
 pointCoords:list[Coordinate]=[]
 
+pointCounter:StringVar=None
+
 ptCount=0
 
 def counterUpdate(strVar:StringVar):

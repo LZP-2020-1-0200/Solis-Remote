@@ -7,13 +7,15 @@ from tkinterGUIS.configuration import TEXT_FONT
 from tkinterGUIS.configuration import TITLE_FONT
 from tkinter import messagebox
 
+
 status=False
+
 def getStatus():
     if not status: 
         messagebox.showinfo("","SolisXY GUI is not connected to SOLIS")
     return status
 def generateIn(parentFrame,mover):
-    title=Label(parentFrame,text="Point registration",font=TITLE_FONT)
+    title=Label(parentFrame,text="Connection to SOLIS",font=TITLE_FONT)
     title.grid(row=0,column=0,columnspan=2)
     statusLabel=Label(parentFrame,text="Disconnected.",font=TEXT_FONT)
     statusLabel.grid(row=1,column=0,columnspan=2)

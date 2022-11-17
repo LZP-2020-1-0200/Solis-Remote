@@ -47,9 +47,11 @@ sessionStageFrame=Frame(master,relief=SOLID)
 sessionStageFrame.grid(row=1,column=0,sticky="news")
 
 #Session loading GUI
-CapFrame=Frame(sessionStageFrame,bd=1,relief=SOLID)
-CapFrame.grid(row=0,column=0,sticky="news")
-sessionManager.generateIn(CapFrame)
+capFrame=Frame(sessionStageFrame,bd=1,relief=SOLID)
+capFrame.grid(row=0,column=0,sticky="ns")
+capFrame.columnconfigure(0,weight=1, uniform='third')
+capFrame.columnconfigure(1,weight=1, uniform='third')
+sessionManager.generateIn(capFrame)
 
 #Set location GUI setup TODO: remove when confirmed unnecessary
 setLocationFrame=Frame(sessionStageFrame,bd=1,relief=SOLID)
