@@ -5,13 +5,22 @@ from classes.coordinate import Coordinate
 from tkinterGUIS.configuration import TEXT_FONT
 from tkinterGUIS.configuration import TITLE_FONT
 
+stepValue:StringVar=None
 
+def relMove(x,y):
+    c=Coordinate(x,y)*int(stepValue.get())
+    if connection.getStatus():
+        nc=mover.get_coordinates()+c
+        mover.set_coordinates(nc)
+    pass
 
 def setLocationHandler(x,y):
     if connection.getStatus():
         mover.set_coordinates(Coordinate(x,y))
     else:
         print("Not connected.")
+
+
 
 def validator(value_if_allowed):
     #check for empty string
@@ -29,26 +38,32 @@ def validator(value_if_allowed):
         return False
 #generates the set location GUI in parentFrame with font settings. callback will be called with parameters (x,y)
 def generateIn(parentFrame):
-    title=Label(parentFrame,text="Set stage location",font=TITLE_FONT)
+    global stepValue
+    stepValue=StringVar()
+
+    title=Label(parentFrame,text="Move stage",font=TITLE_FONT)
     title.grid(row=0,column=0,columnspan=2)
 
-    XLabel = Label(parentFrame, text = "X coordinate:",font=TEXT_FONT)
-    YLabel = Label(parentFrame, text = "Y coordinate:",font=TEXT_FONT)
+    butFrame=Frame(parentFrame)
+    butFrame.grid(row=1,column=0,columnspan=2)
+    
+    buttonFont=("Arial", 25)
+    Button(butFrame,text="🢄",font=buttonFont,command=lambda: relMove(-1,-1)).grid(row=1,column=0,sticky="news")
+    Button(butFrame,text="🢁",font=buttonFont,command=lambda: relMove(0,-1)).grid(row=1,column=1,sticky="news")
+    Button(butFrame,text="🢅",font=buttonFont,command=lambda: relMove(1,-1)).grid(row=1,column=2,sticky="news")
+    Button(butFrame,text="🢀",font=buttonFont,command=lambda: relMove(-1,0)).grid(row=2,column=0,sticky="news")
+    Button(butFrame,text="🢂",font=buttonFont,command=lambda: relMove(1,0)).grid(row=2,column=2,sticky="news")
+    Button(butFrame,text="🢇",font=buttonFont,command=lambda: relMove(-1,1)).grid(row=3,column=0,sticky="news")
+    Button(butFrame,text="🢃",font=buttonFont,command=lambda: relMove(0,1)).grid(row=3,column=1,sticky="news")
+    Button(butFrame,text="🢆",font=buttonFont,command=lambda: relMove(1,1)).grid(row=3,column=2,sticky="news")
+    
 
-
-    XLabel.grid(row = 1, column = 0, sticky = W, pady = 5,padx=5)
-    YLabel.grid(row = 2, column = 0, sticky = W, pady = 2,padx=5)
+    stepLabel = Label(parentFrame, text = "Step",font=TEXT_FONT)
+    stepLabel.grid(row = 4, column = 0, sticky = W, pady = 5,padx=5)
 
     vcmd = (parentFrame.register(validator),'%P')
-    XEntry = Entry(parentFrame,font=TEXT_FONT, validate="key",validatecommand=vcmd)
-    YEntry = Entry(parentFrame,font=TEXT_FONT, validate="key",validatecommand=vcmd)
-    
-    # this will arrange entry widgets
-    XEntry.grid(row = 1, column = 1, padx=5, pady = 5)
-    YEntry.grid(row = 2, column = 1, padx=5, pady = 5)
-    
-    def handleButton():
-        setLocationHandler(int(XEntry.get()),int(YEntry.get()))
 
-    moveButton = Button(parentFrame,text="Move Table", font=TEXT_FONT, command=handleButton)
-    moveButton.grid(row=3,column=0, columnspan=2)
+    stepEntry = Entry(parentFrame,font=TEXT_FONT, validate="key",validatecommand=vcmd,textvariable=stepValue)
+    stepValue.set("10")
+    stepEntry.grid(row = 4, column = 1, padx=5, pady = 5)
+

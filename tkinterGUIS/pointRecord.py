@@ -44,15 +44,15 @@ def generateIn(parentFrame):
 
     markerFrame=Frame(parentFrame)
     markerFrame.grid(row=1,column=0,columnspan=2)
-    markerButton=Button(markerFrame,text="Set marker 1",command=lambda:markers.regMarker(0))
+    markerButton=Button(markerFrame, font=TEXT_FONT,text="Set marker 1",command=lambda:markers.regMarker(0))
     markerButton.grid(row=0,column=0)
-    markerButton2=Button(markerFrame,text="Set marker 2",command=lambda:markers.regMarker(1))
+    markerButton2=Button(markerFrame, font=TEXT_FONT,text="Set marker 2",command=lambda:markers.regMarker(1))
     markerButton2.grid(row=0,column=1)
-    markerButton3=Button(markerFrame,text="Set marker 3",command=lambda:markers.regMarker(2))
+    markerButton3=Button(markerFrame, font=TEXT_FONT,text="Set marker 3",command=lambda:markers.regMarker(2))
     markerButton3.grid(row=0,column=2)
-    markerLabel=Label(markerFrame,textvariable=markers.markerText)
+    markerLabel=Label(markerFrame, font=TEXT_FONT,textvariable=markers.markerText)
     markerLabel.grid(row=1,column=0,columnspan=3)
-    markerSubmit=Button(markerFrame,text="Submit",command=submitMarkers)
+    markerSubmit=Button(markerFrame, font=TEXT_FONT,text="Submit",command=submitMarkers)
     markerSubmit.grid(row=2,column=0,columnspan=3)
 
     #Manual points

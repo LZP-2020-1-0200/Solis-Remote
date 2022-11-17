@@ -12,11 +12,11 @@ b:Coordinate=None
 
 def updateText():
     global markers, markerText
-    markerText.set("".join([(f"Marker {ind}:"+"{"+str(marker)+"},") for ind, marker in enumerate(markers)]))
+    markerText.set("".join([("{"+str(marker)+"},") for ind, marker in enumerate(markers)]))
 
 def regMarker(n:int)->None:
     global markers, markerText
-    if connection.status:
+    if connection.getStatus():
         coord=mover.get_coordinates()
         markers[n]=coord
     updateText()

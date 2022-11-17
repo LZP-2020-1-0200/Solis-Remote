@@ -9,6 +9,8 @@ from tkinter import messagebox
 
 status=False
 def getStatus():
+    if not status: 
+        messagebox.showinfo("","SolisXY GUI is not connected to SOLIS")
     return status
 def generateIn(parentFrame,mover):
     title=Label(parentFrame,text="Point registration",font=TITLE_FONT)
