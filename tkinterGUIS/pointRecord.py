@@ -16,6 +16,8 @@ methodWidgets:list[list[Widget]]=[]
 radios:list[Radiobutton]=[]
 
 def submitMarkers():
+    """Removes the ability to change marker positions"""
+
     regMethod.set(1)
     methodChange()
     for r in radios:
@@ -23,6 +25,7 @@ def submitMarkers():
 
 
 def methodChange():
+    """Switches the GUIS to the appropriate point registration method"""
     for ws in methodWidgets:
         for widget in ws:
             widget.grid_remove()
@@ -31,6 +34,8 @@ def methodChange():
     pass
 
 def generateIn(parentFrame):
+    """Generates the point recording GUI inside `parentFrame`"""
+
     global parent, methodWidgets, regMethod, radios
     regMethod=IntVar()
     lineRecord.pointCounter=StringVar()

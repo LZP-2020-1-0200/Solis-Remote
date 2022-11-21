@@ -6,15 +6,19 @@ from tkinterGUIS.configuration import TEXT_FONT
 from tkinterGUIS.configuration import TITLE_FONT
 
 stepValue:StringVar=None
+"""
+A `StringVar` variable that holds the step size for relative movements
+"""
 
-def relMove(x,y):
+def relMove(x:int,y:int)->None:
+    """Moves the stage by x and y"""
     c=Coordinate(x,y)*int(stepValue.get())
     if connection.getStatus():
-        nc=mover.get_coordinates()+c
-        mover.set_coordinates(nc)
+        #nc=mover.get_coordinates()+c
+        mover.set_relative_coordinates(c)
     pass
 
-def setLocationHandler(x,y):
+def setLocationHandler(x:int,y:int):
     if connection.getStatus():
         mover.set_coordinates(Coordinate(x,y))
     else:
@@ -38,6 +42,7 @@ def validator(value_if_allowed):
         return False
 #generates the set location GUI in parentFrame with font settings. callback will be called with parameters (x,y)
 def generateIn(parentFrame):
+    """Generates the location setter GUI inside `parentFrame`"""
     global stepValue
     stepValue=StringVar()
 

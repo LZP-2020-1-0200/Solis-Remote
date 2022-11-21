@@ -5,12 +5,14 @@ from classes.mover  import mover
 
 
 def regPoint():
-    if connection.status:
+    """Adds a point and displays it"""
+    if connection.getStatus():
         coord=mover.get_coordinates()
         sessionManager.pointList.append((coord.x,coord.y))
-        pointDisplay.displayPoints(sessionManager.pointList)
+        pointDisplay.displayPoints()
     pass
 def unregPoint():
+    """Removes the point from memory and screen"""
     sessionManager.pointList.pop()
-    pointDisplay.displayPoints(sessionManager.pointList)
+    pointDisplay.displayPoints()
     pass

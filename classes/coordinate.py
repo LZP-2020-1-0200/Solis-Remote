@@ -73,7 +73,8 @@ def get_new_points(
     return new_points
 
 
-def read_all_points_from_file(path_to_file: str):
+def read_all_points_from_file(path_to_file: str)->list[Coordinate]:
+    """Reads and returns a list of `Coordinate`s from `path_to_file`"""
     with open(path_to_file, "r") as file:
         list_of_coordinates: list[Coordinate] = []
         csv_reader = csv.reader(file, delimiter=",")
@@ -94,7 +95,8 @@ def read_all_points_from_file(path_to_file: str):
     return list_of_coordinates
 
 
-def save_all_points_to_file(points: list[Coordinate], path: str):
+def save_all_points_to_file(points: list[Coordinate], path: str)->None:
+    """Saves a list of `Coordinate`s to `path` as a CSV file"""
     with open(path, "w", newline="") as file:
         csv_writer = csv.writer(file, delimiter=",")
         for point in points:
@@ -145,7 +147,9 @@ class Coordinate:
         return self.x**2+self.y**2
 
     def dot(self,other:Coordinate)->float:
+        """Computes the dot product with `other`. (Treats coordinates as vectors)"""
         return self.x*other.x+self.y*other.y
     
     def asComponentOf(self,other:Coordinate)->float:
+        """returns the size of the projection on `other` (Treats coordinates as vectors)"""
         return self.dot(other)/other.mag_sq()

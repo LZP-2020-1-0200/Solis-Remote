@@ -13,6 +13,7 @@ pointCounter:StringVar=None
 ptCount=0
 
 def counterUpdate(strVar:StringVar):
+    """Gets the number from the number of points entry and recalculates all points"""
     global ptCount
     t=strVar.get()
     if t.isnumeric():
@@ -21,6 +22,7 @@ def counterUpdate(strVar:StringVar):
     recalculate()
 
 def recalculate():
+    """recalculates the intermediary points and refreshes pointDisplay"""
     totalCoords=[]
     for ind,pt in enumerate(pointCoords[:-1]):
         other=pointCoords[ind+1]
@@ -31,14 +33,18 @@ def recalculate():
     totalCoords.append(pointCoords[-1])
     ptl=[(c.x,c.y) for c in totalCoords]
     sessionManager.pointList=ptl
-    pointDisplay.displayPoints(ptl)
+    pointDisplay.displayPoints()
 
 
 def regPoint():
-    if connection.status:
+    """Adds the current stage position and recalculates points"""
+    if connection.getStatus():
         coord=mover.get_coordinates()
         pointCoords.append(coord)
         recalculate()
 def unregPoint():
+    """Removes the last coordinate and recalculates points"""
     pointCoords.pop()
     recalculate()
+
+

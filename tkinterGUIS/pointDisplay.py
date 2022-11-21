@@ -1,5 +1,6 @@
 from tkinter import * 
 from collections.abc import Callable
+from tkinterGUIS import sessionManager
 from tkinterGUIS.configuration import TEXT_FONT
 from tkinterGUIS.configuration import TITLE_FONT
 import math
@@ -12,19 +13,21 @@ CANVAS_SIZE=400
 POINT_SIZE=10
 
 def generateIn(parentFrame):
+    """Generates the point display GUI inside `parentFrame`"""
+
     global _canvas, _sizeLabel
-    _canvas=Canvas(parentFrame,width=CANVAS_SIZE,height=CANVAS_SIZE, bd = 2,
-    bg = 'white',
-    highlightthickness  = 1, 
-    highlightbackground = 'black')
+    _canvas=Canvas(parentFrame,width=CANVAS_SIZE,height=CANVAS_SIZE, bd = 2, bg = 'white', highlightthickness  = 1, highlightbackground = 'black')
     _canvas.grid(row=0,column=0, padx=5, pady=5)
     
     _sizeLabel=Label(parentFrame,font=TEXT_FONT,text="",justify="left", anchor="ne")
     _sizeLabel.grid(sticky=W,row=1,column=0)
     
-#1μm
 
-def displayPoints(points: list[tuple[int,int]]):
+def displayPoints():
+    """Clears the canvas, draws all points from `sessionManager.pointList`, and updates the scale"""
+
+    points=sessionManager.pointList
+
     _canvas.delete("all")
     
     # no need to draw anything if no points are present

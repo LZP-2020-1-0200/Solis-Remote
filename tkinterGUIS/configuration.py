@@ -5,9 +5,11 @@ _FONT="Arial"
 TITLE_FONT=(_FONT,TITLE_SIZE)
 TEXT_FONT=(_FONT,TEXT_SIZE)
 
-mediums=[]
+#media for experiments
+media=[]
 with open("./media_list.txt") as file:
     for line in file:
-        mediums.append(line.rstrip())
+        media.append(line.rstrip())
 
+#names of references
 referenceNames=["dark","white","darkForWhite"]
