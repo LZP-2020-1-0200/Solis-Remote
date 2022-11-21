@@ -1,4 +1,5 @@
 import os.path
+import os
 import json
 from tkinter import filedialog
 import re
@@ -29,11 +30,38 @@ while True:
 # JSON file
 f = open (os.path.join(dir,"session.json"), "r")
 data = json.load(f)
-print(data["experiments"])
+print(data["refs"])
 f.close()
+
+plotDir=os.path.join(dir,"plots")
+if not os.path.isdir(plotDir):
+    os.mkdir(plotDir)
 
 fig, (plt1,plt2) = plt.subplots(1,2)
 
+refsReq=["dark","white","darkForWhite"]
+
+darkX,darkY,whiteX,whiteY,d4wX,d4wY=[None]*6
+
+for ref in reversed(data["refs"]):
+    if ref["type"]==refsReq[0]:
+        with open(os.path.join(dir,ref["file"])) as f:
+            darkX,darkY,_=parseAsciiFile(f.read())
+        break
+
+for ref in reversed(data["refs"]):
+    if ref["type"]==refsReq[1]:
+        with open(os.path.join(dir,ref["file"])) as f:
+            whiteX,whiteY,_=parseAsciiFile(f.read())
+        break
+
+for ref in reversed(data["refs"]):
+    if ref["type"]==refsReq[2]:
+        with open(os.path.join(dir,ref["file"])) as f:
+            d4wX,d4wY,_=parseAsciiFile(f.read())
+        break
+
+'''
 f=filedialog.askopenfile(mode="r",title="Select dark reference",defaultextension=".asc",initialdir=os.path.join(dir,"refs"))
 darkX,darkY,darkH=parseAsciiFile(f.read())
 f.close()
@@ -48,10 +76,10 @@ f=filedialog.askopenfile(mode="r",title="Select dark for white reference",defaul
 d4wX,d4wY,d4wH=parseAsciiFile(f.read())
 f.close()
 #plt4.plot(d4wX,d4wY)
+'''
 
 
-
-for point in data["points"]:
+for ind,point in enumerate(data["points"]):
     plt1.cla()
     plt2.cla()
     for exp in data["experiments"]:
@@ -77,6 +105,7 @@ for point in data["points"]:
         plt1.scatter(pX,displayY,label=exp["name"],s=1)
         plt2.scatter(arr,fit(arr),s=15)
         plt2.plot(pX,fit(pX))
+    plt.savefig(os.path.join(plotDir,f"{str(ind).zfill(6)}.png"))
     plt.draw()
     plt.pause(0.2)
 
