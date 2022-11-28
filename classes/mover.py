@@ -38,7 +38,7 @@ class _MicroscopeMover:
             logger.error(e)
             return False
 
-        self.set_speed()
+        self.set_speed(40)
         return True
 
     def get_connection_state(self)->bool:
@@ -102,9 +102,9 @@ class _MicroscopeMover:
         self.serial.write(string)
 
         #while self.serial.read(2) != b"0\r":
-            #time.sleep(0.05)
+        #    time.sleep(0.05)
 
-        self.serial.read_until(b"\r")
+        self.serial.read_until(b"0\r")
 
         logger.info(f"Set speed to {speed}%")
 

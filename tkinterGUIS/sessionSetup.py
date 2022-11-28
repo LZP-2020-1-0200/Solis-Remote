@@ -30,6 +30,7 @@ def sessionSetup(dir,points):
         '''
         sessionData.set_session_directory(dir)
         sessionData.set_data_points(points)
+        sessionData.set_anchors()
         sessionData.save()
 
 

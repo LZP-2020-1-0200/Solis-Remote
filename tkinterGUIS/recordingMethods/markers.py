@@ -1,5 +1,6 @@
 
 from tkinterGUIS  import connection
+from tkinterGUIS import sessionData
 from classes.mover  import mover
 from classes.coordinate import Coordinate
 from tkinter import StringVar
@@ -28,3 +29,5 @@ def generateMarkerVectors()->None:
 def toMarkerCoords(c:Coordinate)->Coordinate:
     return Coordinate(c.asComponentOf(a),c.asComponentOf(b))
 
+def saveMarkers():
+    sessionData.set_local_anchors(markers[0],markers[1],markers[2])

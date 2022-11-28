@@ -18,8 +18,13 @@ radios:list[Radiobutton]=[]
 def submitMarkers():
     """Removes the ability to change marker positions"""
 
+    markers.saveMarkers()
+
+    #change the registration method to initiate display
     regMethod.set(1)
     methodChange()
+
+    #show all radio buttons
     for r in radios:
         r.grid()
 

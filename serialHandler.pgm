@@ -45,12 +45,17 @@ return
 
 while(1)
 	//reads the input
+	print("waiting for input...")
 	comread(1,pyInput$)
+	print("received...")
 	if (~HandleSolisCommands(pyInput$)) then
+		print("forwarding to stage...")
 		comwrite(3,pyInput$)
 		comread(3,stageResponse$)
+		print(stageResponse$)
 		comwrite(1,stageResponse$)
 	else
+		print("capturing")
 		comwrite(1,SOLISresponse$)
 	endif
 	

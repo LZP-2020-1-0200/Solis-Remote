@@ -37,22 +37,6 @@ def selectSession():
     dir=filedialog.askdirectory(title='Select session directory').replace("/","\\")
     sessionData.set_session_directory(dir)
     sessionData.load()
-
-    '''
-    f = open(dir+'/session.json')
-    sessionData=json.load(f)
-    f.close()
-    
-    jsonPoints=sessionData.points
-    pointList=[]
-    for pt in jsonPoints:
-        pointList.append((pt["x"],pt["y"]))
-    pointDisplay.displayPoints()
-    for w in preExperimentWidgets:
-        w.grid_remove()
-    for w in experimentWidgets:
-        w.grid()
-    '''
     sessionManager.pointList=sessionData.get_pt_list()
     pointDisplay.displayPoints()
     for w in preExperimentWidgets:
@@ -182,13 +166,6 @@ def generateIn(parentFrame):
     startB = Button(parentFrame,text="Launch experiment", font=TEXT_FONT, command=run)
     startB.grid(row=2,column=0, padx=5,sticky="news")
     startB.grid_remove()
-    '''
-    for i in range(3):
-        refButton=Button(parentFrame,text=configuration.referenceNames[i]+ " Ref", font=TEXT_FONT,command=lambda:takeReference(i))
-        refButton.grid(row=3+(i//2),column=i%2,columnspan=1+(i//2),padx=5,sticky="news")
-        refButton.grid_remove()
-        experimentWidgets.append(refButton)
-    '''
     
     refD=Button(parentFrame,text=configuration.referenceNames[0]+" Ref", font=TEXT_FONT, command=lambda:takeReference(0))
     refD.grid(row=3,column=0, padx=5,sticky="news")
