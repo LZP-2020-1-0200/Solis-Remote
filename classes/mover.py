@@ -1,14 +1,17 @@
 import time
 
-import serial
-import serial.tools.list_ports
+import serial #type: ignore
+import serial.tools.list_ports #type: ignore
 
 from classes.coordinate import Coordinate
+from classes.event import CustomEvent
 from classes.logger import Logger
+import logging
+from typing import Literal
 
-logger = Logger(__name__).get_logger()
+logger:logging.Logger = Logger(__name__).get_logger()
 
-BAUDRATE = 9600
+BAUDRATE: Literal[9600] = 9600
 
 
 class _MicroscopeMover:
@@ -16,8 +19,9 @@ class _MicroscopeMover:
     A private class of the mover.py module instantiated only by `mover`
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.serial: serial.Serial = serial.Serial()
+        self.ontimeout:CustomEvent=CustomEvent()
 
     def connect(self, com_port: str) -> bool:
         """
@@ -32,6 +36,7 @@ class _MicroscopeMover:
 
         try:
             self.serial = serial.Serial(port=com_port, baudrate=BAUDRATE)
+            
             logger.info(f"Successfully connected to {com_port}")
 
         except Exception as e:
@@ -41,10 +46,32 @@ class _MicroscopeMover:
         self.set_speed(40)
         return True
 
+    def ping(self)->bool:
+        """Pings SOLIS to check the connection status"""
+        if self.serial.is_open:
+            previousTimeout:float|None=self.serial.timeout#type: ignore
+            previousWriteTimeout:float|None=self.serial.write_timeout#type: ignore
+            self.serial.timeout=0.2
+            self.serial.write_timeout=0.2
+            self.serial.write(b"PING\r")#type: ignore
+            response:str=self.serial.read_until(b"PING\r").decode("utf-8")#type:ignore
+
+            self.serial.write_timeout=previousWriteTimeout
+            self.serial.timeout=previousTimeout
+            
+            if len(response)==0:
+                self.close_connection()
+                self.ontimeout()# call timeout event
+                return False
+            return True
+        return False
+
+
     def get_connection_state(self)->bool:
         """
         Returns whether mover is connected to a serial port
         """
+        self.ping()
         return self.serial.is_open
 
     def get_coordinates(self) -> Coordinate:
@@ -53,9 +80,11 @@ class _MicroscopeMover:
 
         NOTE: this method does not check if the stage is moving and can return the coordinates while the stage is moving 
         """
-        self.serial.write("P \r".encode())
-        coord_string = self.serial.read_until(b"\r").decode().split(",")[:2]
-        cord = Coordinate(int(coord_string[0]), int(coord_string[1]))
+
+
+        self.serial.write("P \r".encode())#type: ignore
+        coord_string: list[str] = self.serial.read_until(b"\r").decode().split(",")[:2]#type: ignore
+        cord: Coordinate = Coordinate(int(coord_string[0]), int(coord_string[1]))
         logger.info(f"Read point {cord}")
         return cord
 
@@ -64,32 +93,34 @@ class _MicroscopeMover:
         Sends a command to the stage to move to specific coordinates
 
         `cord`: The absolute coordinates to where should the stage be moved to
+        returns True if successful
         """
         logger.info(f"Going to: {cord.x} {cord.y}")
-        string = f"G,{cord.x},{cord.y} \r"
-        self.serial.write(string.encode())
+        string: str = f"G,{cord.x},{cord.y} \r"
+        self.serial.write(string.encode())#type: ignore
 
-        while self.serial.read_until(b"\r")[-2:] != b"R\r":
+        while self.serial.read_until(b"\r")[-2:] != b"R\r":#type: ignore
             time.sleep(0.05)
-
     def reset_coordinates(self)->None:
         """
         Resets the stage to point (0,0)
         """
-        self.serial.write(b"PS,0,0 \r")
+        self.serial.write(b"PS,0,0 \r")#type: ignore
         self.serial.read(2)
     
-    def set_relative_coordinates(self,coord:Coordinate):
+    def set_relative_coordinates(self,coord:Coordinate) -> None:
         """
         Moves the stage by `coord`
         Useful for tiny adjustments
 
         `coord`: the coordinates describing relative movement
         """
+
+
         logger.info(f"Moving by: {coord.x} {coord.y}")
-        string = f"GR {coord.x},{coord.y} \r"
-        self.serial.write(string.encode("utf-8"))
-        self.serial.read_until(b"\r")
+        string: str = f"GR {coord.x},{coord.y} \r"
+        self.serial.write(string.encode("utf-8"))#type: ignore
+        self.serial.read_until(b"\r")#type: ignore
 
 
     def set_speed(self, speed: int = 40)->None:
@@ -98,13 +129,13 @@ class _MicroscopeMover:
 
         `speed`: an integer corresponding to the speed
         """
-        string = f"SMS,{speed} \r".encode()
-        self.serial.write(string)
+        string: bytes = f"SMS,{speed} \r".encode()
+        self.serial.write(string)#type: ignore
 
         #while self.serial.read(2) != b"0\r":
         #    time.sleep(0.05)
 
-        self.serial.read_until(b"0\r")
+        self.serial.read_until(b"\r")#type: ignore
 
         logger.info(f"Set speed to {speed}%")
 
@@ -116,9 +147,9 @@ class _MicroscopeMover:
         `directory`: Absolute path to where future saving should accur
         """
         #Change the target directory
-        self.serial.write(f"SDIR {directory}\r".encode("utf-8"))
+        self.serial.write(f"SDIR {directory}\r".encode("utf-8"))#type: ignore
         #block until received response
-        self.serial.read_until(b"\r")
+        self.serial.read_until(b"\r")#type: ignore
 
 
     
@@ -132,11 +163,11 @@ class _MicroscopeMover:
         `filename`: the name of the file set
         """
 
-        self.serial.write(f"RUN {filename}\r".encode("utf-8"))
-        self.serial.read_until(b"\r")
+        self.serial.write(f"RUN {filename}\r".encode("utf-8"))#type: ignore
+        self.serial.read_until(b"\r")#type: ignore
         pass
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         """
         Closes the connection to the serial port
         """
@@ -153,15 +184,15 @@ class _MicroscopeMover:
         `cmd`: The command that is sent to the SOLIS script
         """
         #send command
-        self.serial.write(cmd+b"\r")
+        self.serial.write(cmd+b"\r")#type: ignore
 
         logger.info(f"Sent custom command: \"{cmd}\"")
 
         #block until respnse received
-        return self.serial.read_until(b"\r")
+        return self.serial.read_until(b"\r")#type: ignore
 
 
-mover = _MicroscopeMover()
+mover: _MicroscopeMover = _MicroscopeMover()
 """
 The singleton instance of microscope mover.
 Used for communication to the stage and SOLIS script

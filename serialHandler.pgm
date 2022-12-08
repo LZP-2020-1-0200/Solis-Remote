@@ -15,7 +15,11 @@ function ~HandleSolisCommands(line$)
 	
 	HandleSolisCommands=1		
 	SOLISresponse$=""
-	
+	if (strcomp(command$, "PING")==0) then
+		HandleSolisCommands=0
+		SOLISresponse$="PING"
+		print("ping received...")
+	endif
 	if (strcomp(command$,"RUN")==0) then
 		HandleSolisCommands=0
 		SOLISresponse$="OK"
@@ -35,19 +39,18 @@ function ~HandleSolisCommands(line$)
 		HandleSolisCommands=0
 		SaveDir$=args$
 		SOLISresponse$="OK"
-		
-		//closeWindow(#0)
 	endif
 	
 	
 return
 
-
+//comread(3,stageResponse$)
 while(1)
 	//reads the input
 	print("waiting for input...")
 	comread(1,pyInput$)
 	print("received...")
+	print(pyInput$)
 	if (~HandleSolisCommands(pyInput$)) then
 		print("forwarding to stage...")
 		comwrite(3,pyInput$)

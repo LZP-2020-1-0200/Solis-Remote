@@ -10,7 +10,7 @@ PBS
 100p
 200p
 500p
-1n
+1pgDNS
 2n
 5n
 10n
