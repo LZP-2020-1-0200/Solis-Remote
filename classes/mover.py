@@ -8,20 +8,28 @@ from classes.event import CustomEvent
 from classes.logger import Logger
 import logging
 from typing import Literal
+from enum import Enum
 
 logger:logging.Logger = Logger(__name__).get_logger()
 
 BAUDRATE: Literal[9600] = 9600
 
+class MicroscopeStatus(Enum):
+    SOLIS_UNRESPONSIVE  =1
+    STAGE_UNRESPONSIVE  =2
+    CONNECTED           =3
+    DISCONNECTED        =4
 
 class _MicroscopeMover:
     """
     A private class of the mover.py module instantiated only by `mover`
     """
-
+    
     def __init__(self) -> None:
         self.serial: serial.Serial = serial.Serial()
         self.ontimeout:CustomEvent=CustomEvent()
+        self.ontimeout.bind(lambda:logger.info("ontimeout called"))
+        self.lastStatus:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
 
     def connect(self, com_port: str) -> bool:
         """
@@ -43,36 +51,67 @@ class _MicroscopeMover:
             logger.error(e)
             return False
 
-        self.set_speed(40)
-        return True
+        #test connection
+        self.lastStatus=self._ping_all()
+        if self.lastStatus==MicroscopeStatus.CONNECTED:
+            self.set_speed(40)
+            return True
 
-    def ping(self)->bool:
-        """Pings SOLIS to check the connection status"""
+        return False
+    def _ping_all(self)->MicroscopeStatus:
+        """Pings SOLIS and the stage to check the connection status. Does not close the connection."""
+        
+        logger.info("Checking port status")
+        timeout:float=0.1
         if self.serial.is_open:
             previousTimeout:float|None=self.serial.timeout#type: ignore
             previousWriteTimeout:float|None=self.serial.write_timeout#type: ignore
-            self.serial.timeout=0.2
-            self.serial.write_timeout=0.2
+            self.serial.timeout=timeout
+            self.serial.write_timeout=timeout
+            logger.info("Pinging SOLIS")
             self.serial.write(b"PING\r")#type: ignore
             response:str=self.serial.read_until(b"PING\r").decode("utf-8")#type:ignore
 
+            
+            # SOLIS is unresponsive
+            if len(response)==0:
+                logger.info("SOLIS unresponsive.")
+                self.serial.write_timeout=previousWriteTimeout
+                self.serial.timeout=previousTimeout
+                return MicroscopeStatus.SOLIS_UNRESPONSIVE
+
+            #SOLIS is responsive, check if stage responds
+            self.serial.write(b"P \r")#type: ignore
+            response=self.serial.read_until(b"\r").decode("utf-8")#type: ignore
+
+            #Stage did not respond
+            if len(response)==0:
+                logger.info("Stage unresponsive")
+                self.serial.write_timeout=previousWriteTimeout
+                self.serial.timeout=previousTimeout
+                return MicroscopeStatus.STAGE_UNRESPONSIVE
+
+
+            #reset serial connection settings and send ok status
             self.serial.write_timeout=previousWriteTimeout
             self.serial.timeout=previousTimeout
-            
-            if len(response)==0:
-                self.close_connection()
-                self.ontimeout()# call timeout event
-                return False
-            return True
-        return False
+            logger.info("Ping successful")
+            return MicroscopeStatus.CONNECTED
+        logger.info("Port is closed")
+        return MicroscopeStatus.DISCONNECTED
+    def ping(self)->MicroscopeStatus:
+        """Pings SOLIS and the stage to check the connection status. Closes the connection if timeout is discovered"""
 
+        # ping the stage only if it should be connected
+        if self.lastStatus==MicroscopeStatus.CONNECTED:
+            self.lastStatus:MicroscopeStatus=self._ping_all()
 
-    def get_connection_state(self)->bool:
-        """
-        Returns whether mover is connected to a serial port
-        """
-        self.ping()
-        return self.serial.is_open
+        # close the connection if something is unresponsive
+        if self.lastStatus==MicroscopeStatus.SOLIS_UNRESPONSIVE or self.lastStatus==MicroscopeStatus.STAGE_UNRESPONSIVE:
+            self.close_connection()
+            self.ontimeout()# call timeout event
+        
+        return self.lastStatus
 
     def get_coordinates(self) -> Coordinate:
         """
@@ -105,6 +144,7 @@ class _MicroscopeMover:
         """
         Resets the stage to point (0,0)
         """
+        logger.info("Resetting stage position")
         self.serial.write(b"PS,0,0 \r")#type: ignore
         self.serial.read(2)
     
@@ -146,6 +186,7 @@ class _MicroscopeMover:
 
         `directory`: Absolute path to where future saving should accur
         """
+        logger.info("Changing SOLIS output directory")
         #Change the target directory
         self.serial.write(f"SDIR {directory}\r".encode("utf-8"))#type: ignore
         #block until received response
@@ -163,6 +204,7 @@ class _MicroscopeMover:
         `filename`: the name of the file set
         """
 
+        logger.info("Capturing and saving in {filename}")
         self.serial.write(f"RUN {filename}\r".encode("utf-8"))#type: ignore
         self.serial.read_until(b"\r")#type: ignore
         pass
@@ -172,7 +214,7 @@ class _MicroscopeMover:
         Closes the connection to the serial port
         """
         self.serial.close()
-        logger.info("Closed connection")
+        logger.info("Connection terminated")
 
     def send_custom_command(self, cmd:bytes)->bytes:
         """

@@ -1,106 +1,97 @@
 from tkinterGUIS  import connection
-from tkinterGUIS  import sessionData
-from tkinterGUIS.PointRecording import pointRecord
+from classes  import sessionData
 from helpers.configuration import TEXT_FONT
 from classes.mover  import mover
 from classes.coordinate import Coordinate
+from classes.event import CustomEvent
 from tkinter import Button, Label, StringVar, Frame, Entry
 
+from classes.logger import Logger
+import logging
+log:logging.Logger=Logger(__name__).get_logger()
 
-pointCoords:list[Coordinate]=[]
+onsubmitpoints:CustomEvent=CustomEvent()
+onsubmitpoints.bind(lambda:log.info("onsubmitpoints called"))
 
-rowCounter:StringVar|None=None
-colCounter:StringVar|None=None
+#pointCoords:list[Coordinate]=[]
 
-rCount:int=2
-cCount:int=2
+#rowCounter:StringVar|None=None
+#colCounter:StringVar|None=None
 
-points:list[Coordinate|None]=[None,None,None]
+#rCount:int=2
+#cCount:int=2
 
-def regPoint(ind:int) -> None:
-    if connection.getStatus():
-        points[ind]=mover.get_coordinates()
-        recalculate()
+#points:list[Coordinate|None]=[None,None,None]
 
-def rcounterUpdate(strVar:StringVar|None) -> None:
-    """Gets the number from the number of points entry and recalculates all points"""
-    global rCount
-    if strVar is None: 
-        rCount=2
-        return
-    t: str=strVar.get()
-    if t.isnumeric():
-        rCount=int(t)
-    rCount=max(2,rCount)
-    print(rCount)
-    recalculate()
+class GUI(Frame):
+    def __init__(self,parent:Frame) -> None:
+        Frame.__init__(self, parent)
+        self._rowCounter: StringVar=StringVar()
+        self._colCounter: StringVar=StringVar()
+        self._rCount:int=2
+        self._cCount:int=2
+        Button(self,text="Set point a",command=lambda: self._regPoint(0),font=TEXT_FONT).grid(row=0,column=0)
+        Button(self,text="Set point b",command=lambda: self._regPoint(1),font=TEXT_FONT).grid(row=0,column=1)
+        Button(self,text="Set point c",command=lambda: self._regPoint(2),font=TEXT_FONT).grid(row=0,column=2)
+        Button(self,text="Submit", command=self._submit,font=TEXT_FONT).grid(row=1,column=0,columnspan=2)
 
-def ccounterUpdate(strVar:StringVar|None) -> None:
-    """Gets the number from the number of points entry and recalculates all points"""
-    global cCount
-    if strVar is None: 
-        cCount=2
-        return
-    t: str=strVar.get()
-    if t.isnumeric():
-        cCount=int(t)
-    cCount=max(2,cCount)
-    print(cCount)
-    recalculate()
+        Label(self,text="Enter row count").grid(row=2,column=0, padx=5)
+        Entry(self,textvariable=self._rowCounter).grid(row=2,column=1, padx=5)
+        self._rowCounter.trace_add("write", lambda a,b,c: self._rcounterUpdate())
 
-def recalculate() -> None:
-    """recalculates the intermediary points and refreshes pointDisplay"""
-    assert rCount>=2 and cCount>=2
-    startingCorner:Coordinate|None=points[0]
-    pB:Coordinate|None=points[1]
-    pC:Coordinate|None=points[2]
-    if startingCorner is None or pB is None or pC is None: return
-    vectorX:Coordinate=pB-startingCorner
-    vectorAC:Coordinate=pC-startingCorner
-    vectorY:Coordinate=vectorAC-(vectorX*((vectorX.dot(vectorAC))/(vectorX.mag_sq())))
+        Label(self,text="Enter column count").grid(row=2,column=0, padx=5)
+        Entry(self,textvariable=self._colCounter).grid(row=3,column=1, padx=5)
+        self._colCounter.trace_add("write", lambda a,b,c: self._ccounterUpdate())
+        self._points:list[Coordinate|None]=[None,None,None]
+        log.info("GUI init")
+    def _regPoint(self,ind:int) -> None:
+        if connection.getStatus():
+            self._points[ind]=mover.get_coordinates()
+            self._recalculate()
 
-    xStep:Coordinate=vectorX/(cCount-1)
-    yStep:Coordinate=vectorY/(rCount-1)
+    def _rcounterUpdate(self) -> None:
+        """Gets the number from the number of points entry and recalculates all points"""
+        t: str=self._rowCounter.get()
+        if t.isnumeric():
+            self._rCount=int(t)
+        self._rCount=max(2,self._rCount)
+        print(self._rCount)
+        self._recalculate()
 
-    totalCoordinates:list[Coordinate]=[]
-    for y in range(rCount):
-        for x in range(cCount):
-            totalCoordinates.append((startingCorner+xStep*x+yStep*y).rounded())
-    sessionData.clear_data_points()
-    sessionData.add_data_points(totalCoordinates)
+    def _ccounterUpdate(self) -> None:
+        """Gets the number from the number of points entry and recalculates all points"""
+        t: str=self._colCounter.get()
+        if t.isnumeric():
+            self._cCount=int(t)
+        self._cCount=max(2,self._cCount)
+        print(self._cCount)
+        self._recalculate()
+
+    def _recalculate(self) -> None:
+        """recalculates the intermediary points and refreshes pointDisplay"""
+        assert self._rCount>=2 and self._cCount>=2
+        startingCorner:Coordinate|None=self._points[0]
+        pB:Coordinate|None=self._points[1]
+        pC:Coordinate|None=self._points[2]
+        if startingCorner is None or pB is None or pC is None: return
+        vectorX:Coordinate=pB-startingCorner
+        vectorAC:Coordinate=pC-startingCorner
+        vectorY:Coordinate=vectorAC-(vectorX*((vectorX.dot(vectorAC))/(vectorX.mag_sq())))
+
+        xStep:Coordinate=vectorX/(self._cCount-1)
+        yStep:Coordinate=vectorY/(self._rCount-1)
+
+        totalCoordinates:list[Coordinate]=[]
+        for y in range(self._rCount):
+            for x in range(self._cCount):
+                totalCoordinates.append((startingCorner+xStep*x+yStep*y).rounded())
+        sessionData.clear_data_points()
+        sessionData.add_data_points(totalCoordinates)
+
+    def _submit(self) -> None:
+        self._recalculate()
+        sessionData.submit_data_points()
+        onsubmitpoints()
+
+
     
-    """
-    totalCoords: list[Coordinate]=[]
-    for ind,pt in enumerate(pointCoords[:-1]):
-        other: Coordinate=pointCoords[ind+1]
-        totalCoords.append(pt)
-        step: Coordinate=(other-pt)/(rCount-1)
-        for ind in range(rCount-2):
-            totalCoords.append((pt+(step*(ind+1))))
-    totalCoords.append(pointCoords[-1])
-    sessionData.clear_data_points()
-    sessionData.add_data_points(totalCoords)
-    """
-
-def submit() -> None:
-    recalculate()
-    sessionData.submit_data_points()
-    pointRecord.onsubmitpoints()
-
-
-def generateIn(parentFrame:Frame) -> None:
-    global rowCounter, colCounter
-    rowCounter=StringVar()
-    colCounter=StringVar()
-    Button(parentFrame,text="Set point a",command=lambda: regPoint(0),font=TEXT_FONT).grid(row=0,column=0)
-    Button(parentFrame,text="Set point b",command=lambda: regPoint(1),font=TEXT_FONT).grid(row=0,column=1)
-    Button(parentFrame,text="Set point c",command=lambda: regPoint(2),font=TEXT_FONT).grid(row=0,column=2)
-    Button(parentFrame,text="Submit", command=submit,font=TEXT_FONT).grid(row=1,column=0,columnspan=2)
-
-    Label(parentFrame,text="Enter row count").grid(row=2,column=0, padx=5)
-    Entry(parentFrame,textvariable=rowCounter).grid(row=2,column=1, padx=5)
-    rowCounter.trace_add("write", lambda a,b,c: rcounterUpdate(rowCounter))
-
-    Label(parentFrame,text="Enter column count").grid(row=2,column=0, padx=5)
-    Entry(parentFrame,textvariable=colCounter).grid(row=3,column=1, padx=5)
-    colCounter.trace_add("write", lambda a,b,c: ccounterUpdate(colCounter))

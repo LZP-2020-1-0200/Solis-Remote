@@ -120,7 +120,7 @@ maxV:None|float=None
 minV:float=0
 
 # data parsing and early transformations
-for ind, point in enumerate(data["points"]):
+for ind, point in enumerate(data["points"][20:380]):
     readIn.append([])
     for expInd, exp in enumerate(data["experiments"]):
         ptDir: str=os.path.join(dir,exp["folder"],point["filename"])
@@ -141,7 +141,7 @@ for i in range(len(data["experiments"])):
     experimentMaxMovement.append([[],[]])
 
 # Function approximation and critical point acquisition
-for ind, point in enumerate(data["points"]):
+for ind, point in enumerate(data["points"][20:380]):
     #clear plot data and re-set the y-axis limits
     plt1.cla()
     plt2.cla()

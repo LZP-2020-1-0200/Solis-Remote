@@ -1,27 +1,18 @@
-from tkinter import Frame
-from tkinterGUIS.mainMenu import pointPointer, sessionManager, referenceManager
+from tkinter import Frame, Misc
+from tkinterGUIS.mainMenu import sessionManager, referenceManager, setSwitcher
+from classes.logger import Logger
+import logging
+log:logging.Logger=Logger(__name__).get_logger()
 
+class GUI(Frame):
+    """Generates a GUI of the main Scene"""
+    def __init__(self, parent:Misc) -> None:
+        Frame.__init__(self, parent)
+        log.debug("GUI init")
+        referenceManager.GUI(self).grid(row=0,column=0)
+        
+        setSwitcher.GUI(self).grid(row=0,column=1)
 
-_ref_frame:Frame|None=None
-_point_frame:Frame|None=None
-_bottom_frame:Frame|None=None
-
-
-def generateIn(parent:Frame) -> None:
-    global _ref_frame, _point_frame, _bottom_frame
-    _point_frame=Frame(parent)
-    pointPointer.generateIn(_point_frame)
-    _point_frame.grid(row=0,column=1)
-
-    _ref_frame=Frame(parent)
-    referenceManager.generateIn(_ref_frame)
-    _ref_frame.grid(row=0,column=0)
-
-    
-
-    _bottom_frame=Frame(parent)
-    _bottom_frame.grid(row=1,column=0,columnspan=2)
-    sessionManager.generateIn(_bottom_frame)
-
-
+        sessionManager.GUI(self).grid(row=1,column=0,columnspan=2)
+        
     

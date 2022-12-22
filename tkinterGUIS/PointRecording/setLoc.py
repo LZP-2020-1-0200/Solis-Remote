@@ -1,4 +1,4 @@
-from tkinter import Frame, StringVar, Label, Button, Entry
+from tkinter import Frame, StringVar, Label, Button, Entry, Misc
 from tkinterGUIS import connection
 from classes.mover import mover
 from classes.coordinate import Coordinate
@@ -6,73 +6,68 @@ from helpers.configuration import TEXT_FONT
 from helpers.configuration import TITLE_FONT
 from typing import Literal
 
-stepValue:StringVar|None=None
-"""
-A `StringVar` variable that holds the step size for relative movements
-"""
+from classes.logger import Logger
+import logging
 
-def relMove(x:int,y:int)->None:
-    """Moves the stage by x and y"""
+log:logging.Logger=Logger(__name__).get_logger()
 
-    assert stepValue is not None # when moving the variable should be at least initialized
-    
-    c: Coordinate=Coordinate(x,y)*int(stepValue.get())
-    if connection.getStatus():
-        #nc=mover.get_coordinates()+c
-        mover.set_relative_coordinates(c)
-    pass
+class GUI(Frame):
+    def __init__(self,parent:Misc) -> None:
+        Frame.__init__(self,parent)
+        self._stepValue: StringVar=StringVar()
 
-def setLocationHandler(x:int,y:int) -> None:
-    if connection.getStatus():
-        mover.set_coordinates(Coordinate(x,y))
-    else:
-        print("Not connected.")
+        title: Label=Label(self,text="Move stage",font=TITLE_FONT)
+        title.grid(row=0,column=0,columnspan=2)
+
+        butFrame: Frame=Frame(self)
+        butFrame.grid(row=1,column=0,columnspan=2)
+        
+        buttonFont: tuple[Literal['Arial'], Literal[25]]=("Arial", 25)
+        Button(butFrame,text="🢄",font=buttonFont,command=lambda: self._relMove(-1,-1)).grid(row=1,column=0,sticky="news")
+        Button(butFrame,text="🢁",font=buttonFont,command=lambda: self._relMove(0,-1)).grid(row=1,column=1,sticky="news")
+        Button(butFrame,text="🢅",font=buttonFont,command=lambda: self._relMove(1,-1)).grid(row=1,column=2,sticky="news")
+        Button(butFrame,text="🢀",font=buttonFont,command=lambda: self._relMove(-1,0)).grid(row=2,column=0,sticky="news")
+        Button(butFrame,text="🢂",font=buttonFont,command=lambda: self._relMove(1,0)).grid(row=2,column=2,sticky="news")
+        Button(butFrame,text="🢇",font=buttonFont,command=lambda: self._relMove(-1,1)).grid(row=3,column=0,sticky="news")
+        Button(butFrame,text="🢃",font=buttonFont,command=lambda: self._relMove(0,1)).grid(row=3,column=1,sticky="news")
+        Button(butFrame,text="🢆",font=buttonFont,command=lambda: self._relMove(1,1)).grid(row=3,column=2,sticky="news")
+        
+
+        stepLabel: Label = Label(self, text = "Step (in μm):",font=TEXT_FONT)
+        stepLabel.grid(row = 4, column = 0, sticky = 'w', pady = 5,padx=5)
+
+        vcmd: tuple[str, Literal['%P']] = (self.register(self._validator),'%P')
+
+        stepEntry: Entry = Entry(self,font=TEXT_FONT, validate="key",validatecommand=vcmd,textvariable=self._stepValue)
+        self._stepValue.set("10")
+        stepEntry.grid(row = 4, column = 1, padx=5, pady = 5)
+        log.info("GUI init")
+
+    def _relMove(self,x:int,y:int)->None:
+        """Moves the stage by x and y"""
+        c: Coordinate=Coordinate(x,y)*int(self._stepValue.get())
+        if connection.getStatus():
+            mover.set_relative_coordinates(c)
 
 
+    def _setLocationHandler(self,x:int,y:int) -> None:
+        if connection.getStatus():
+            mover.set_coordinates(Coordinate(x,y))
+        else:
+            print("Not connected.")
 
-def validator(value_if_allowed:str) -> bool:
-    #check for empty string
-    if value_if_allowed=='' or value_if_allowed=='-':
-        return True
-    #deny spaces
-    if ' ' in value_if_allowed:
-        return False
+    def _validator(self,value_if_allowed:str) -> bool:
+        #check for empty string
+        if value_if_allowed=='' or value_if_allowed=='-':
+            return True
+        #deny spaces
+        if ' ' in value_if_allowed:
+            return False
 
-    #test if is convertible to int
-    try:
-        int(value_if_allowed)
-        return True
-    except ValueError:
-        return False
-#generates the set location GUI in parentFrame with font settings. callback will be called with parameters (x,y)
-def generateIn(parentFrame:Frame) -> None:
-    """Generates the location setter GUI inside `parentFrame`"""
-    global stepValue
-    stepValue=StringVar()
-
-    title: Label=Label(parentFrame,text="Move stage",font=TITLE_FONT)
-    title.grid(row=0,column=0,columnspan=2)
-
-    butFrame: Frame=Frame(parentFrame)
-    butFrame.grid(row=1,column=0,columnspan=2)
-    
-    buttonFont: tuple[Literal['Arial'], Literal[25]]=("Arial", 25)
-    Button(butFrame,text="🢄",font=buttonFont,command=lambda: relMove(-1,-1)).grid(row=1,column=0,sticky="news")
-    Button(butFrame,text="🢁",font=buttonFont,command=lambda: relMove(0,-1)).grid(row=1,column=1,sticky="news")
-    Button(butFrame,text="🢅",font=buttonFont,command=lambda: relMove(1,-1)).grid(row=1,column=2,sticky="news")
-    Button(butFrame,text="🢀",font=buttonFont,command=lambda: relMove(-1,0)).grid(row=2,column=0,sticky="news")
-    Button(butFrame,text="🢂",font=buttonFont,command=lambda: relMove(1,0)).grid(row=2,column=2,sticky="news")
-    Button(butFrame,text="🢇",font=buttonFont,command=lambda: relMove(-1,1)).grid(row=3,column=0,sticky="news")
-    Button(butFrame,text="🢃",font=buttonFont,command=lambda: relMove(0,1)).grid(row=3,column=1,sticky="news")
-    Button(butFrame,text="🢆",font=buttonFont,command=lambda: relMove(1,1)).grid(row=3,column=2,sticky="news")
-    
-
-    stepLabel: Label = Label(parentFrame, text = "Step (in μm):",font=TEXT_FONT)
-    stepLabel.grid(row = 4, column = 0, sticky = 'w', pady = 5,padx=5)
-
-    vcmd: tuple[str, Literal['%P']] = (parentFrame.register(validator),'%P')
-
-    stepEntry: Entry = Entry(parentFrame,font=TEXT_FONT, validate="key",validatecommand=vcmd,textvariable=stepValue)
-    stepValue.set("10")
-    stepEntry.grid(row = 4, column = 1, padx=5, pady = 5)
+        #test if is convertible to int
+        try:
+            int(value_if_allowed)
+            return True
+        except ValueError:
+            return False
 

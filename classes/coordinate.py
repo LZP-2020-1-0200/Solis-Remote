@@ -157,9 +157,7 @@ class Coordinate:
         """Computes the dot product with `other`. (Treats coordinates as vectors)"""
         return self.x*other.x+self.y*other.y
     
-    def asComponentOf(self,other:Coordinate)->float:
-        """returns the size of the projection on `other` (Treats coordinates as vectors)"""
-        return self.dot(other)/other.mag_sq()
+    
 
     def toDict(self,rounding:bool=False)->dict[str,int|float]:
         return {"x":self.x,"y":self.y} if not rounding else {"x":round(self.x),"y":round(self.y)}
@@ -167,8 +165,6 @@ class Coordinate:
     def toTuple(self,rounding:bool=False)->tuple[int|float,int|float]:
         return (self.x,self.y) if not rounding else (round(self.x),round(self.y))
 
-    def copy(self, rounding:bool=False) -> Coordinate:
-        return Coordinate(self.x,self.y)
 
     @staticmethod
     def fromDict(dictionary:dict[str,int|float]) -> Coordinate:
