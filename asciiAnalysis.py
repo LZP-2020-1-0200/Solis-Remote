@@ -94,22 +94,7 @@ for ref in reversed(data["refs"]):
             d4wX,d4wY,_=parseAsciiFile(f.read())
         break
 
-'''
-f=filedialog.askopenfile(mode="r",title="Select dark reference",defaultextension=".asc",initialdir=os.path.join(dir,"refs"))
-darkX,darkY,darkH=parseAsciiFile(f.read())
-f.close()
-#plt2.plot(darkX,darkY)
 
-f=filedialog.askopenfile(mode="r",title="Select white reference",defaultextension=".asc",initialdir=os.path.join(dir,"refs"))
-whiteX,whiteY,whiteH=parseAsciiFile(f.read())
-f.close()
-#plt3.plot(whiteX,whiteY)
-
-f=filedialog.askopenfile(mode="r",title="Select dark for white reference",defaultextension=".asc",initialdir=os.path.join(dir,"refs"))
-d4wX,d4wY,d4wH=parseAsciiFile(f.read())
-f.close()
-#plt4.plot(d4wX,d4wY)
-'''
 
 clrmp=get_cmap(len(data["experiments"])+1)
 
