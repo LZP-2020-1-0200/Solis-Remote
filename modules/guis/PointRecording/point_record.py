@@ -1,6 +1,6 @@
 """Contains a GUI class that contains the display and the various recording methods"""
 import logging
-from tkinter import IntVar, Frame, Radiobutton, Misc
+from tkinter import IntVar, Frame, Radiobutton, Misc, Button
 
 from . import point_display, set_loc
 from .recordingMethods import manual_record, line_record, rectangle_record
@@ -50,7 +50,7 @@ class GUI(Frame):
         rectangle_rec_gui.onsubmitpoints.bind(self.onsubmitpoints)
 
         recording_type: Frame=Frame(self)
-        recording_type.grid(row=1,column=0)
+        recording_type.grid(row=1,column=0, ipadx=5, ipady=5)
 
         Radiobutton(recording_type,
             text = "Point",
@@ -76,6 +76,11 @@ class GUI(Frame):
             background = "light blue",
             font=TEXT_FONT
             ).grid(row=2,column=0,ipady = 5,ipadx=5,sticky="news")
+        Button(self,
+            font=TEXT_FONT,
+            command=self.oncancelpointselection,
+            text="Go back"
+            ).grid(row=2, column=0, sticky="news")
         log.info("GUI init")
 
     def _method_change(self) -> None:

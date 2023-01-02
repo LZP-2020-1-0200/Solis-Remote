@@ -3,11 +3,11 @@ from typing import Literal
 
 
 #Font constants for the app
-TITLE_SIZE: Literal[30]=30
-TEXT_SIZE: Literal[20]=20
+TITLE_SIZE: int=24
+TEXT_SIZE: int=16
 _FONT: Literal['Arial']="Arial"
-TITLE_FONT: tuple[Literal['Arial'], Literal[30]]=(_FONT,TITLE_SIZE)
-TEXT_FONT: tuple[Literal['Arial'], Literal[20]]=(_FONT,TEXT_SIZE)
+TITLE_FONT: tuple[Literal['Arial'], int]=(_FONT,TITLE_SIZE)
+TEXT_FONT: tuple[Literal['Arial'], int]=(_FONT,TEXT_SIZE)
 
 #media for experiments
 MEDIA:list[str]=[]

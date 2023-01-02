@@ -1,7 +1,7 @@
 
 SOLISresponse$=""
 SaveDir$=""
-
+stagePortNumber=8
 //returns "" if read line has to be passed to stage,
 //otherwise returns the response string
 function ~HandleSolisCommands(line$)
@@ -53,8 +53,8 @@ while(1)
 	print(pyInput$)
 	if (~HandleSolisCommands(pyInput$)) then
 		print("forwarding to stage...")
-		comwrite(3,pyInput$)
-		comread(3,stageResponse$)
+		comwrite(stagePortNumber,pyInput$)
+		comread(stagePortNumber,stageResponse$)
 		print(stageResponse$)
 		comwrite(1,stageResponse$)
 	else
