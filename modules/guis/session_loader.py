@@ -12,12 +12,6 @@ from ..classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-onload:CustomEvent=CustomEvent()
-onload.bind(lambda:log.info("onload called"))
-oncreate:CustomEvent=CustomEvent()
-oncreate.bind(lambda:log.info("oncreate called"))
-ontomenu:CustomEvent=CustomEvent()
-ontomenu.bind(lambda:log.info("ontomenu called"))
 
 
 class GUI(Frame):
@@ -35,6 +29,9 @@ class GUI(Frame):
             command=self._create_session)
         make_env_button.grid(row=2,column=1, padx=5)
         log.info("GUI init")
+        self.onload:CustomEvent=CustomEvent("session_loaderGUI.onload")
+        self.oncreate:CustomEvent=CustomEvent("session_loaderGUI.oncreate")
+        self.ontomenu:CustomEvent=CustomEvent("session_loaderGUI.ontomenu")
 
     def _select_session(self) -> None:
         """Prompts user to select session and loads data"""
@@ -45,10 +42,10 @@ class GUI(Frame):
         if session_directory=="":
             return
 
-        session_data.dataStruct.dir=session_directory
+        session_data.data_struct.dir=session_directory
         session_data.load()
-        onload()
-        ontomenu()
+        self.onload()
+        self.ontomenu()
 
     def _create_session(self) -> None:
         """Prompts user to select session and creates data"""
@@ -59,9 +56,9 @@ class GUI(Frame):
         if session_directory=="":
             return
 
-        session_data.dataStruct.dir=session_directory
+        session_data.data_struct.dir=session_directory
         session_data.session_setup()
         session_data.load()
-        oncreate()
-        ontomenu()
+        self.oncreate()
+        self.ontomenu()
     

@@ -21,7 +21,7 @@ class GUI(Frame):
     """Generates a GUI that displays registered points"""
     def __init__(self,parent:Misc) -> None:
         Frame.__init__(self,parent)
-        session_data.onpointchange.bind(self.display_points)
+        session_data.data_struct.onpointchange.bind(self.display_points)
         self._canvas: Canvas=Canvas(self,
             width=CANVAS_SIZE,
             height=CANVAS_SIZE,
@@ -40,7 +40,7 @@ class GUI(Frame):
         and updates the scale
         """
         log.info("Displaying points")
-        points: list[Coordinate]=[item.coordinate for item in session_data.dataStruct.local_points]
+        points: list[Coordinate]=[item.coordinate for item in session_data.data_struct.local_points]
 
         self._canvas.delete("all")
 

@@ -7,7 +7,7 @@ from modules.classes.scene_switcher import SceneSwitcher
 from modules.classes.logger import Logger
 from modules.guis import session_loader, connection, anchors
 from modules.guis.PointRecording import point_record
-from modules.guis.mainMenu import main_scene, set_switcher
+from modules.guis.mainMenu import main_scene
 
 
 log:logging.Logger=Logger(__name__).get_logger()
@@ -29,16 +29,20 @@ main_switcher:SceneSwitcher=SceneSwitcher(main_frame)
 
 
 session_load: int=main_switcher.add_scene()
-session_loader.GUI(main_switcher.get_frame(session_load)).pack()
+session_loader_gui: session_loader.GUI=session_loader.GUI(main_switcher.get_frame(session_load))
+session_loader_gui.pack()
 
 main_scene_id: int=main_switcher.add_scene()
-main_scene.GUI(main_switcher.get_frame(main_scene_id)).pack()
+main_scene_gui:main_scene.GUI=main_scene.GUI(main_switcher.get_frame(main_scene_id))
+main_scene_gui.pack()
 
 point_scene: int=main_switcher.add_scene()
-point_record.GUI(main_switcher.get_frame(point_scene)).pack()
+point_record_gui:point_record.GUI=point_record.GUI(main_switcher.get_frame(point_scene))
+point_record_gui.pack()
 
 anchor_scene: int=main_switcher.add_scene()
-anchors.GUI(main_switcher.get_frame(anchor_scene)).pack()
+anchor_gui:anchors.GUI=anchors.GUI(main_switcher.get_frame(anchor_scene))
+anchor_gui.pack()
 
 
 # --- events ---
@@ -46,21 +50,21 @@ anchors.GUI(main_switcher.get_frame(anchor_scene)).pack()
 def to_point_reg() -> None:
     """Switches to the point registration scene"""
     main_switcher.switch_to(point_scene)
-set_switcher.onmovetoset.bind(to_point_reg)
+main_scene_gui.set_switcher.onmovetoset.bind(to_point_reg)
 
 def to_anchor_reg() -> None:
     """Switches to the anchor registration scene"""
     main_switcher.switch_to(anchor_scene)
-set_switcher.onmovetoanchor.bind(to_anchor_reg)
+main_scene_gui.set_switcher.onmovetoanchor.bind(to_anchor_reg)
 
 
 def to_main() -> None:
     """Switches to the main scene"""
     main_switcher.switch_to(main_scene_id)
 
-session_loader.ontomenu.bind(to_main)
-point_record.onsubmitpoints.bind(to_main)
-anchors.onconfirmanchors.bind(to_main)
+session_loader_gui.ontomenu.bind(to_main)
+point_record_gui.onsubmitpoints.bind(to_main)
+anchor_gui.onconfirmanchors.bind(to_main)
 
 #updates all widths and heights for usage
 master.update()

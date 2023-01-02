@@ -13,8 +13,6 @@ from ..classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-onconnect:CustomEvent=CustomEvent()
-onconnect.bind(lambda:log.info("onconnect called"))
 def get_status()->bool:
     """
     Wrapper function that informs the user if connection to SOLIS has not yet been established
@@ -60,6 +58,8 @@ class GUI(Frame):
         disconnect_button.grid(row=2,column=1,padx=5)
         log.info("GUI init")
 
+        self.onconnect: CustomEvent=CustomEvent("connectionGUI.onconnect")
+
     def _disconnect(self) -> None:
         """
         Wrapper function for informing the user about disconnecting
@@ -78,7 +78,7 @@ class GUI(Frame):
         if get_status():
             self.status_label.config(text="Connected to COM6.")
             log.info("Connection successful")
-            onconnect()
+            self.onconnect()
         else:
             self.status_label.config(text="Connection failed.")
             log.info("Connection failed")

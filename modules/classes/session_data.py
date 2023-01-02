@@ -80,6 +80,9 @@ class SessionData():
         self.local_anchors:list[Coordinate]=[]
         self.dir:str=""
 
+        self.onstatuschange:CustomEvent=CustomEvent("session_dataGUI.onstatuschange")
+        self.onpointchange:CustomEvent=CustomEvent("session_dataGUI.onpointchange")
+
     def pack(self)->dict[str,Any]:
         """Creates a dictionary from the values"""
         return {
@@ -119,116 +122,110 @@ class SessionData():
                 for pt in self.points
                 ]
 
-dataStruct:SessionData=SessionData()
-
-
-onstatuschange:CustomEvent=CustomEvent()
-onstatuschange.bind(lambda:log.info("onstatuschange called"))
-onpointchange:CustomEvent=CustomEvent()
-onpointchange.bind(lambda:log.info("onpointchange called"))
+data_struct:SessionData=SessionData()
 
 
 # --- Save/Load ---
 def save() -> None:
     """saves the data to session.json"""
     log.info("Saving data")
-    with open(dataStruct.dir+"/session.json", "w", encoding="utf-8") as session_file:
-        json.dump(dataStruct.pack(),session_file,indent=4)
+    with open(data_struct.dir+"/session.json", "w", encoding="utf-8") as session_file:
+        json.dump(data_struct.pack(),session_file,indent=4)
 
 def load() -> None:
     """loads the session.json from dictionary"""
     log.info("Loading data")
-    with open(dataStruct.dir+"/session.json", "r", encoding="utf-8") as session_file:
-        dataStruct.unpack(json.load(session_file))
-    onstatuschange()
-    onpointchange()
+    with open(data_struct.dir+"/session.json", "r", encoding="utf-8") as session_file:
+        data_struct.unpack(json.load(session_file))
+    data_struct.onstatuschange()
+    data_struct.onpointchange()
 
 def calculate_relative_points() -> None:
     """Calculates local points from anchors and stored points"""
     log.info("Translating stored points to local coordinates")
     local_coords: list[Coordinate]=[
-        translator.anchor_translate(dataStruct.local_anchors,dataStruct.anchors,item.coordinate)
-        for item in dataStruct.points
+        translator.anchor_translate(data_struct.local_anchors,data_struct.anchors,item.coordinate)
+        for item in data_struct.points
         ]
     # make a copy with translated coordinates
-    dataStruct.local_points=[
+    data_struct.local_points=[
         SessionDataPoint(local_coords[ind].x,local_coords[ind].y,item.filename)
-        for ind,item in enumerate(dataStruct.points)
+        for ind,item in enumerate(data_struct.points)
         ]
 
 # --- Getters ---
 def get_pt_list() -> list[tuple[int | float, int | float]]:
     """Acquires the newest list of points in as a list of tuples of x and y coordinates"""
-    return [item.coordinate.to_tuple() for item in dataStruct.local_points]
+    return [item.coordinate.to_tuple() for item in data_struct.local_points]
 
 # --- Setters ---
 def set_local_anchors(anchor_a:Coordinate, anchor_b:Coordinate, anchor_c:Coordinate) -> None:
     """Sets the local anchors and global anchors if none are set"""
     log.info("Setting local anchors")
     #set local anchors and the flag
-    dataStruct.local_anchors=[anchor_a,anchor_b,anchor_c]
-    dataStruct.local_anchors_set=True
+    data_struct.local_anchors=[anchor_a,anchor_b,anchor_c]
+    data_struct.local_anchors_set=True
     #set global anchors if none are set
-    if not dataStruct.anchors_set:
+    if not data_struct.anchors_set:
         _set_anchors()
     calculate_relative_points()
-    onstatuschange()
+    data_struct.onstatuschange()
 
 def _set_anchors() -> None:
     """Sets the session's anchors to the local anchors (used only on first initialization)"""
     log.info("Setting global anchors")
-    dataStruct.anchors=[Coordinate(anchor.x,anchor.y) for anchor in dataStruct.local_anchors]
-    dataStruct.anchors_set=True
+    data_struct.anchors=[Coordinate(anchor.x,anchor.y) for anchor in data_struct.local_anchors]
+    data_struct.anchors_set=True
     save()
-    onstatuschange()
+    data_struct.onstatuschange()
 
 def add_data_point(point:Coordinate) -> None:
     """Adds a point to the local point list"""
     log.info("Single datapoint added")
-    dataStruct.local_points.append(SessionDataPoint(
+    data_struct.local_points.append(SessionDataPoint(
         point.x,
         point.y,
-        str(len(dataStruct.local_points)+1).zfill(5)+".asc"
+        str(len(data_struct.local_points)+1).zfill(5)+".asc"
         ))
-    onpointchange()
+    data_struct.onpointchange()
 def add_data_points(points:list[Coordinate]) -> None:
     """Adds a list of points to the local point list"""
     log.info("Multiple datapoints added")
     for point in points:
-        dataStruct.local_points.append(SessionDataPoint(
+        data_struct.local_points.append(SessionDataPoint(
             point.x,
             point.y,
-            str(len(dataStruct.local_points)+1).zfill(5)+".asc"
+            str(len(data_struct.local_points)+1).zfill(5)+".asc"
             ))
-    onpointchange()
+    data_struct.onpointchange()
 def pop_data_point() -> None:
     """Removes last datapoint from the local point list"""
     log.info("Removed last datapoint")
-    dataStruct.local_points.pop()
-    onpointchange()
+    data_struct.local_points.pop()
+    data_struct.onpointchange()
 def clear_data_points() -> None:
     """Clears all datapoints from the local point list"""
     log.info("Cleared all datapoints")
-    dataStruct.local_points=[]
-    onpointchange()
+    data_struct.local_points=[]
+    data_struct.onpointchange()
 
 def submit_data_points() -> None:
     """Copies all locally set points to the json file"""
     log.info("Saving all datapoints")
-    dataStruct.points_set=True
+    data_struct.points_set=True
     #deep copy
-    dataStruct.points=[
+    data_struct.points=[
         SessionDataPoint(pt.coordinate.x,pt.coordinate.y,pt.filename)
-        for pt in dataStruct.local_points
+        for pt in data_struct.local_points
         ]
     save()
-    onpointchange()
-    onstatuschange()
+    data_struct.onpointchange()
+    data_struct.onstatuschange()
 
 def add_experiment(folder:str,name:str)->None:
     """Add an experiment entry to the json file"""
     log.info("Appending an experiment entry")
-    dataStruct.experiments.append(SessionDataExperiment(
+    data_struct.experiments.append(SessionDataExperiment(
         folder,
         name,
         timestamp=str(datetime.datetime.now())
@@ -238,7 +235,7 @@ def add_experiment(folder:str,name:str)->None:
 def add_reference(filepath:str,ref_type:str) -> None:
     """Add a reference entry to the json file"""
     log.info("Appending reference entry")
-    dataStruct.references.append(SessionDataReference(
+    data_struct.references.append(SessionDataReference(
         file=filepath,
         reference_type=ref_type,
         timestamp=str(datetime.datetime.now())
@@ -250,6 +247,6 @@ def add_reference(filepath:str,ref_type:str) -> None:
 def session_setup() -> None:
     """creates the initial setup for a session"""
     log.info("Making directories")
-    os.mkdir(dataStruct.dir+"/experiments/")
-    os.mkdir(dataStruct.dir+"/refs/")
+    os.mkdir(data_struct.dir+"/experiments/")
+    os.mkdir(data_struct.dir+"/refs/")
     save()

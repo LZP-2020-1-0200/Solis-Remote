@@ -25,7 +25,7 @@ def _run() -> None:
         i:int=0
         experiment_dir: str=""
         while True:
-            experiment_dir=os.path.join(session_data.dataStruct.dir,"experiments", str(i).zfill(3) )
+            experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3) )
             if not os.path.isdir(experiment_dir):
                 os.mkdir(experiment_dir)
                 break
@@ -38,13 +38,13 @@ def _run() -> None:
             medium:str=_prompt_medium()
 
             #add the experiment to sessionData and close the popup
-            relative_path:str=os.path.relpath(experiment_dir,session_data.dataStruct.dir)
+            relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
             session_data.add_experiment(relative_path,medium)
             log.info("Starting experiment")
 
             #launch the experiment
             mover.set_output_directory(experiment_dir)
-            for point in session_data.dataStruct.local_points:
+            for point in session_data.data_struct.local_points:
                 mover.set_coordinates(point.coordinate)
                 mover.take_capture(point.filename)
 
@@ -120,28 +120,28 @@ class GUI(Frame):
         Label(checklist,textvariable=self._marker_status, font=TEXT_FONT).grid(row=1,column=1)
         Label(checklist,textvariable=self._local_marker_status, font=TEXT_FONT).grid(row=2,column=1)
         self._status_update()
-        session_data.onstatuschange.bind(self._status_update)
+        session_data.data_struct.onstatuschange.bind(self._status_update)
         log.info("GUI init")
     def _status_update(self) -> None:
         """Checks and updates the labels,
         and the launch experiment button according to data flags
         """
         #{"points_set":False,"anchors_set":False}
-        if session_data.dataStruct.points_set:
+        if session_data.data_struct.points_set:
             self._point_status.set(_CHECK)
         else:
             self._point_status.set(_CROSS)
-        if session_data.dataStruct.anchors_set:
+        if session_data.data_struct.anchors_set:
             self._marker_status.set(_CHECK)
         else:
             self._marker_status.set(_CROSS)
-        if session_data.dataStruct.local_anchors_set:
+        if session_data.data_struct.local_anchors_set:
             self._local_marker_status.set(_CHECK)
         else:
             self._local_marker_status.set(_CROSS)
-        if (    session_data.dataStruct.points_set and
-                session_data.dataStruct.anchors_set and
-                session_data.dataStruct.local_anchors_set):
+        if (    session_data.data_struct.points_set and
+                session_data.data_struct.anchors_set and
+                session_data.data_struct.local_anchors_set):
             self.start_button["state"]="normal"
         else:
             self.start_button["state"]="disabled"
