@@ -13,11 +13,6 @@ log:logging.Logger=Logger(__name__).get_logger()
 
 
 
-onsubmitpoints:CustomEvent=CustomEvent()
-onsubmitpoints.bind(lambda:log.info("onsubmitpoints called"))
-oncancelpointselection:CustomEvent=CustomEvent()
-oncancelpointselection.bind(lambda:log.info("oncancelpointselection called"))
-
 class GUI(Frame):
     """Generates a GUI containing recording GUIs, a display GUI and relative movement GUI"""
     def __init__(self, parent:Misc) -> None:
@@ -35,17 +30,24 @@ class GUI(Frame):
         recording_frame.grid(row=1, column=1,columnspan=3)
         self._rec_scene_switcher: SceneSwitcher=SceneSwitcher(recording_frame)
 
+        self.onsubmitpoints:CustomEvent=CustomEvent("point_recordGUI.onsubmitpoints")
+        self.oncancelpointselection:CustomEvent=CustomEvent("point_recordGUI.oncancelpointselection")
+
+
         manual_mode: int=self._rec_scene_switcher.add_scene()
-        manual_record.GUI(self._rec_scene_switcher.get_frame(manual_mode)).pack()
-        manual_record.onsubmitpoints.bind(onsubmitpoints)
+        manual_rec_gui:manual_record.GUI=manual_record.GUI(self._rec_scene_switcher.get_frame(manual_mode))
+        manual_rec_gui.pack()
+        manual_rec_gui.onsubmitpoints.bind(self.onsubmitpoints)
 
         line_mode: int=self._rec_scene_switcher.add_scene()
-        line_record.GUI(self._rec_scene_switcher.get_frame(line_mode)).pack()
-        line_record.onsubmitpoints.bind(onsubmitpoints)
+        line_rec_gui:line_record.GUI=line_record.GUI(self._rec_scene_switcher.get_frame(line_mode))
+        line_rec_gui.pack()
+        line_rec_gui.onsubmitpoints.bind(self.onsubmitpoints)
 
         rectangle_mode: int=self._rec_scene_switcher.add_scene()
-        rectangle_record.GUI(self._rec_scene_switcher.get_frame(rectangle_mode)).pack()
-        rectangle_record.onsubmitpoints.bind(onsubmitpoints)
+        rectangle_rec_gui:rectangle_record.GUI=rectangle_record.GUI(self._rec_scene_switcher.get_frame(rectangle_mode))
+        rectangle_rec_gui.pack()
+        rectangle_rec_gui.onsubmitpoints.bind(self.onsubmitpoints)
 
         recording_type: Frame=Frame(self)
         recording_type.grid(row=1,column=0)

@@ -15,8 +15,6 @@ from ..classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-onconfirmanchors:CustomEvent=CustomEvent()
-onconfirmanchors.bind(lambda:log.info("onconfirmanchors called"))
 
 class GUI(Frame):
     """Generates a GUI of the switcher"""
@@ -42,6 +40,9 @@ class GUI(Frame):
         set_loc.GUI(self).grid(row=4,column=0,columnspan=3)
         log.info("GUI init")
 
+        self.onconfirmanchors:CustomEvent=CustomEvent("AnchorsGUI.onconfirmanchors")
+
+
     def _confirm(self) -> None:
         # send confirmation event when all coordinates are set
         if (
@@ -54,7 +55,7 @@ class GUI(Frame):
                 self._anchor_coords[1],
                 self._anchor_coords[2])
             log.info("Anchors set")
-            onconfirmanchors()
+            self.onconfirmanchors()
 
     def _set_anchor(self,index:int) -> None:
         if connection.get_status():

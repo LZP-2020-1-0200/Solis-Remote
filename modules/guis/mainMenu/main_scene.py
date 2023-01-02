@@ -12,6 +12,7 @@ class GUI(Frame):
         log.debug("GUI init")
         reference_manager.GUI(self).grid(row=0,column=0)
 
-        set_switcher.GUI(self).grid(row=0,column=1)
+        self.set_switcher:set_switcher.GUI=set_switcher.GUI(self)
+        self.set_switcher.grid(row=0,column=1)
 
         experiment_launcher.GUI(self).grid(row=1,column=0,columnspan=2)

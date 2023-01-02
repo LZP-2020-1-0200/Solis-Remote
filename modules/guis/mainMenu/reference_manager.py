@@ -13,7 +13,6 @@ from ...classes import session_data
 log:logging.Logger=Logger(__name__).get_logger()
 
 
-
 class GUI(Frame):
     """Generates a GUI of the Reference measurment"""
     def __init__(self, parent:Misc) -> None:
@@ -56,13 +55,13 @@ class GUI(Frame):
             while True:
                 filename=REFERENCE_NAMES[reference_type]+str(i).zfill(2)+".asc"
                 rel_dir=os.path.join("refs",filename)
-                full_dir=os.path.join(session_data.dataStruct.dir,rel_dir)
+                full_dir=os.path.join(session_data.data_struct.dir,rel_dir)
                 if not os.path.isfile(full_dir):
                     break
                 i+=1
             log.debug("Reference name %s found", filename)
             session_data.add_reference(rel_dir,REFERENCE_NAMES[reference_type])
-            mover.set_output_directory(os.path.join(session_data.dataStruct.dir,"refs"))
+            mover.set_output_directory(os.path.join(session_data.data_struct.dir,"refs"))
             log.info("Starting spectrogram")
             mover.take_capture(filename)
             log.info("Finished spectrogram")

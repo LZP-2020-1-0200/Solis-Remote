@@ -12,13 +12,14 @@ from ....helpers.configuration import TEXT_FONT
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-onsubmitpoints:CustomEvent=CustomEvent()
-onsubmitpoints.bind(lambda:log.info("onsubmitpoints called"))
 
 class GUI(Frame):
     """Generates a GUI for recording single points"""
     def __init__(self, parent:Misc) -> None:
         Frame.__init__(self,parent)
+
+        self.onsubmitpoints:CustomEvent=CustomEvent("manual_recordGUI.onsubmitpoints")
+
         Button(self,text="Add point",command=self._reg_point,font=TEXT_FONT).grid(row=0,column=0)
         Button(self,
             text="Undo last point",
@@ -45,4 +46,4 @@ class GUI(Frame):
 
     def _submit(self) -> None:
         session_data.submit_data_points()
-        onsubmitpoints()
+        self.onsubmitpoints()

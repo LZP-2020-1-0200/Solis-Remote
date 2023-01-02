@@ -20,6 +20,8 @@ class GUI(Frame):
     def __init__(self, parent:Misc) -> None:
         Frame.__init__(self, parent)
         self._point_counter: StringVar=StringVar()
+        self.onsubmitpoints:CustomEvent=CustomEvent("line_recordGUI.onsubmitpoints")
+
         Button(self,
             text="Add point",
             command=self._reg_point,
@@ -87,4 +89,4 @@ class GUI(Frame):
     def _submit(self) -> None:
         self._recalculate()
         session_data.submit_data_points()
-        onsubmitpoints()
+        self.onsubmitpoints()

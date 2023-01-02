@@ -11,8 +11,6 @@ from ....classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-onsubmitpoints:CustomEvent=CustomEvent()
-onsubmitpoints.bind(lambda:log.info("onsubmitpoints called"))
 
 
 class GUI(Frame):
@@ -23,6 +21,7 @@ class GUI(Frame):
         self._col_counter: StringVar=StringVar()
         self._r_count:int=2
         self._c_count:int=2
+        self.onsubmitpoints:CustomEvent=CustomEvent("rectangle_recordingGUI.onsubmitpoints")
         Button(self,
             text="Set point A",
             command=lambda: self._reg_point(0),
@@ -48,7 +47,7 @@ class GUI(Frame):
         Entry(self,textvariable=self._row_counter).grid(row=2,column=1, padx=5)
         self._row_counter.trace_add("write", lambda a,b,c: self._rcounter_update())
 
-        Label(self,text="Enter column count").grid(row=2,column=0, padx=5)
+        Label(self,text="Enter column count").grid(row=3,column=0, padx=5)
         Entry(self,textvariable=self._col_counter).grid(row=3,column=1, padx=5)
         self._col_counter.trace_add("write", lambda a,b,c: self._ccounter_update())
         self._points:list[Coordinate|None]=[None,None,None]
@@ -115,4 +114,4 @@ class GUI(Frame):
     def _submit(self) -> None:
         self._recalculate()
         session_data.submit_data_points()
-        onsubmitpoints()
+        self.onsubmitpoints()
