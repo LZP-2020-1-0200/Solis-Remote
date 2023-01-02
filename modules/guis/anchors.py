@@ -15,7 +15,6 @@ from ..classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
-
 class GUI(Frame):
     """Generates a GUI of the switcher"""
     def __init__(self, parent:Misc) -> None:
@@ -35,12 +34,15 @@ class GUI(Frame):
         Label(self, font=TEXT_FONT, textvariable=self._anchor_coords_vars[1]).grid(row=2,column=1)
         Label(self, font=TEXT_FONT, textvariable=self._anchor_coords_vars[2]).grid(row=2,column=2)
 
+        self.onconfirmanchors:CustomEvent=CustomEvent("AnchorsGUI.onconfirmanchors")
+        self.oncancelanchors:CustomEvent=CustomEvent("AnchorsGUI.cancelanchors")
+
         Button(self, font=TEXT_FONT,
             command=self._confirm, text="Confirm").grid(row=3,column=0,columnspan=3)
+        Button(self, font=TEXT_FONT,
+            command=self.oncancelanchors, text="Go back").grid(row=5,column=0)
         set_loc.GUI(self).grid(row=4,column=0,columnspan=3)
         log.info("GUI init")
-
-        self.onconfirmanchors:CustomEvent=CustomEvent("AnchorsGUI.onconfirmanchors")
 
 
     def _confirm(self) -> None:

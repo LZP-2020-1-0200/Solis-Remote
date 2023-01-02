@@ -202,7 +202,6 @@ for ind, point in enumerate(data["points"][20:380]):
     #plt.pause(0.2)
 
 plt.draw()
-#fig.clear()
 plt.cla()
 plt.clf()
 

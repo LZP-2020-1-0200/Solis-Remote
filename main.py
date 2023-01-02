@@ -64,7 +64,9 @@ def to_main() -> None:
 
 session_loader_gui.ontomenu.bind(to_main)
 point_record_gui.onsubmitpoints.bind(to_main)
+point_record_gui.oncancelpointselection.bind(to_main)
 anchor_gui.onconfirmanchors.bind(to_main)
+anchor_gui.oncancelanchors.bind(to_main)
 
 #updates all widths and heights for usage
 master.update()
