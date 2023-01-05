@@ -1,6 +1,6 @@
 """The main file that creates an application to use the microscope"""
 
-from tkinter import Tk, Frame, mainloop
+from tkinter import Tk, Frame, mainloop, messagebox
 import logging
 
 from modules.classes.scene_switcher import SceneSwitcher
@@ -8,9 +8,22 @@ from modules.classes.logger import Logger
 from modules.guis import session_loader, connection, anchors
 from modules.guis.PointRecording import point_record
 from modules.guis.mainMenu import main_scene
+from modules.helpers.configuration import STAGE_EXISTS, LOOPBACK_EXISTS
 
 
 log:logging.Logger=Logger(__name__).get_logger()
+
+#Check if ports found
+if not STAGE_EXISTS:
+    messagebox.showwarning("Automated port location error!", #type:ignore
+        "Stage controller port not found!\n"+
+        "If you wish to control the stage, fix your connection and restart this program.")
+if not LOOPBACK_EXISTS:
+    messagebox.showwarning("Automated port location error!", #type:ignore
+        "Serial loopback connection not found!"+
+        "If you wish to connect to SOLIS, fix your connection and restart the program.")
+
+
 
 # creating main tkinter window/toplevel
 master: Tk = Tk()
@@ -29,7 +42,7 @@ main_switcher:SceneSwitcher=SceneSwitcher(main_frame)
 
 
 session_load: int=main_switcher.add_scene()
-session_loader_gui: session_loader.GUI=session_loader.GUI(main_switcher.get_frame(session_load))
+session_loader_gui:session_loader.GUI=session_loader.GUI(main_switcher.get_frame(session_load))
 session_loader_gui.pack()
 
 main_scene_id: int=main_switcher.add_scene()

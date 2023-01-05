@@ -5,7 +5,7 @@ serves as a bridge between the user and the `mover`
 from tkinter import Frame, Label, Button, Misc, messagebox
 import logging
 
-from ..helpers.configuration import TEXT_FONT
+from ..helpers.configuration import TEXT_FONT, LOOPBACK_A
 
 from ..classes.mover import mover, MicroscopeStatus
 from ..classes.event import CustomEvent
@@ -74,9 +74,9 @@ class GUI(Frame):
         """
         if not messagebox.askyesno("","Is SOLIS script on?"):#type: ignore
             return
-        mover.connect("COM6")
+        mover.connect(LOOPBACK_A)
         if get_status():
-            self.status_label.config(text="Connected to COM6.")
+            self.status_label.config(text=f"Connected to {LOOPBACK_A}.")
             log.info("Connection successful")
             self.onconnect()
         else:

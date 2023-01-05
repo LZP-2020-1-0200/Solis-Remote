@@ -1,7 +1,28 @@
 
 SOLISresponse$=""
 SaveDir$=""
-stagePortNumber=8
+stagePortNumber=2
+appPortNumber=3
+endReached=0
+while (endReached==0)
+	read("SOLIS.cfg", configLine$)
+	print("test1")
+	if (strcomp(configLine$,"STAGE_PORT")==0) then
+		read("SOLIS.cfg", configVal$)
+		stagePortNumber=val(configVal$)
+	endif
+	print("test2")
+	if (strcomp(configLine$,"APP_PORT")==0) then
+		read("SOLIS.cfg", configVal$)
+		appPortNumber=val(configVal$)
+	endif
+	if (strcomp(configLine$,"END")==0) then
+		endReached=1
+	endif
+wend
+close()
+print("Stage port: COM";stagePortNumber)
+print("Application port: COM";appPortNumber)
 //returns "" if read line has to be passed to stage,
 //otherwise returns the response string
 function ~HandleSolisCommands(line$)
@@ -56,10 +77,10 @@ while(1)
 		comwrite(stagePortNumber,pyInput$)
 		comread(stagePortNumber,stageResponse$)
 		print(stageResponse$)
-		comwrite(1,stageResponse$)
+		comwrite(appPortNumber,stageResponse$)
 	else
 		print("capturing")
-		comwrite(1,SOLISresponse$)
+		comwrite(appPortNumber,SOLISresponse$)
 	endif
 	
 	
