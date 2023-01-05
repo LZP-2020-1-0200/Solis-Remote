@@ -1,11 +1,15 @@
-
+"""Functions for locating loopback and stage ports"""
 import serial #type: ignore
 import serial.tools.list_ports #type: ignore
 
 def get_com_ports() -> list[str]:
+    """Returns a list of all COM ports"""
     return [item.name for item in list(serial.tools.list_ports.comports())]#type:ignore
 
 def find_loop_back() -> tuple[bool,str,str]:
+    """Returns a tuple containing a bool that denotes if location was successful,
+    and the 2 ports that are connected to each other.
+    """
     port_a: serial.Serial=serial.Serial()
     port_b: serial.Serial=serial.Serial()
     timeout:float=0.1
@@ -35,6 +39,9 @@ def find_loop_back() -> tuple[bool,str,str]:
     return False, "",""
 
 def find_stage() -> tuple[bool, str]:
+    """Returns a tuple of a bool that denotes if the stage port was successfuly found
+    and the port name
+    """
     port:serial.Serial=serial.Serial()
     available_ports:list[str]=get_com_ports()
     timeout:float=0.1

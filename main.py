@@ -8,7 +8,11 @@ from modules.classes.logger import Logger
 from modules.guis import session_loader, connection, anchors
 from modules.guis.PointRecording import point_record
 from modules.guis.mainMenu import main_scene
-from modules.helpers.configuration import STAGE_EXISTS, LOOPBACK_EXISTS, LOOPBACK_B, STAGE_PORT, LOOPBACK_A
+from modules.helpers.configuration import (
+    STAGE_EXISTS, LOOPBACK_EXISTS,
+    LOOPBACK_A, LOOPBACK_B,
+    STAGE_PORT
+    )
 
 
 log:logging.Logger=Logger(__name__).get_logger()
