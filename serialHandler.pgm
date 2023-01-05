@@ -1,7 +1,28 @@
 
 SOLISresponse$=""
 SaveDir$=""
-
+stagePortNumber=2
+appPortNumber=3
+endReached=0
+while (endReached==0)
+	read("SOLIS.cfg", configLine$)
+	print("test1")
+	if (strcomp(configLine$,"STAGE_PORT")==0) then
+		read("SOLIS.cfg", configVal$)
+		stagePortNumber=val(configVal$)
+	endif
+	print("test2")
+	if (strcomp(configLine$,"APP_PORT")==0) then
+		read("SOLIS.cfg", configVal$)
+		appPortNumber=val(configVal$)
+	endif
+	if (strcomp(configLine$,"END")==0) then
+		endReached=1
+	endif
+wend
+close()
+print("Stage port: COM";stagePortNumber)
+print("Application port: COM";appPortNumber)
 //returns "" if read line has to be passed to stage,
 //otherwise returns the response string
 function ~HandleSolisCommands(line$)
@@ -15,7 +36,11 @@ function ~HandleSolisCommands(line$)
 	
 	HandleSolisCommands=1		
 	SOLISresponse$=""
-	
+	if (strcomp(command$, "PING")==0) then
+		HandleSolisCommands=0
+		SOLISresponse$="PING"
+		print("ping received...")
+	endif
 	if (strcomp(command$,"RUN")==0) then
 		HandleSolisCommands=0
 		SOLISresponse$="OK"
@@ -35,28 +60,27 @@ function ~HandleSolisCommands(line$)
 		HandleSolisCommands=0
 		SaveDir$=args$
 		SOLISresponse$="OK"
-		
-		//closeWindow(#0)
 	endif
 	
 	
 return
 
-
+//comread(3,stageResponse$)
 while(1)
 	//reads the input
 	print("waiting for input...")
 	comread(1,pyInput$)
 	print("received...")
+	print(pyInput$)
 	if (~HandleSolisCommands(pyInput$)) then
 		print("forwarding to stage...")
-		comwrite(3,pyInput$)
-		comread(3,stageResponse$)
+		comwrite(stagePortNumber,pyInput$)
+		comread(stagePortNumber,stageResponse$)
 		print(stageResponse$)
-		comwrite(1,stageResponse$)
+		comwrite(appPortNumber,stageResponse$)
 	else
 		print("capturing")
-		comwrite(1,SOLISresponse$)
+		comwrite(appPortNumber,SOLISresponse$)
 	endif
 	
 	
