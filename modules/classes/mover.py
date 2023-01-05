@@ -29,8 +29,7 @@ class _MicroscopeMover:
 
     def __init__(self) -> None:
         self.serial: serial.Serial = serial.Serial()
-        self.ontimeout:CustomEvent=CustomEvent()
-        self.ontimeout.bind(lambda:logger.info("ontimeout called"))
+        self.ontimeout:CustomEvent=CustomEvent("MicroscopeMover.ontimeout")
         self.last_status:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
 
     def connect(self, com_port: str) -> bool:
