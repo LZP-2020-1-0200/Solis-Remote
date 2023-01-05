@@ -8,7 +8,7 @@ from modules.classes.logger import Logger
 from modules.guis import session_loader, connection, anchors
 from modules.guis.PointRecording import point_record
 from modules.guis.mainMenu import main_scene
-from modules.helpers.configuration import STAGE_EXISTS, LOOPBACK_EXISTS
+from modules.helpers.configuration import STAGE_EXISTS, LOOPBACK_EXISTS, LOOPBACK_B, STAGE_PORT, LOOPBACK_A
 
 
 log:logging.Logger=Logger(__name__).get_logger()
@@ -20,9 +20,13 @@ if not STAGE_EXISTS:
         "If you wish to control the stage, fix your connection and restart this program.")
 if not LOOPBACK_EXISTS:
     messagebox.showwarning("Automated port location error!", #type:ignore
-        "Serial loopback connection not found!"+
+        "Serial loopback connection not found!\n"+
         "If you wish to connect to SOLIS, fix your connection and restart the program.")
 
+#set up the config file for SOLIS
+with open("./SOLIS.cfg","w",encoding='utf-8') as f:
+    f.write(f"STAGE_PORT\n{STAGE_PORT[3:]}\nAPP_PORT\n{LOOPBACK_B[3:]}\nEND")
+log.info("Ports set. Loopback ports: %s and %s, Stage port: %s", LOOPBACK_A, LOOPBACK_B, STAGE_PORT)
 
 
 # creating main tkinter window/toplevel

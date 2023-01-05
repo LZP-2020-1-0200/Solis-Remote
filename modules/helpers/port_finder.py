@@ -15,10 +15,10 @@ def find_loop_back() -> tuple[bool,str,str]:
     port_b.write_timeout=timeout
     available_ports:list[str]=get_com_ports()
     for ind, port_name_a in enumerate(available_ports[:-1]):
-        port_a.setPort(port_name_a)#type:ignore
         for port_name_b in available_ports[ind+1:]:
-            port_b.setPort(port_name_b)#type:ignore
             try:
+                port_a.setPort(port_name_a)#type:ignore
+                port_b.setPort(port_name_b)#type:ignore
                 port_a.open()
                 port_b.open()
                 port_b.read_all()

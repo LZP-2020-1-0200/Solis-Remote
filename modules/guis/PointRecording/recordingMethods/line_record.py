@@ -12,8 +12,6 @@ from ....classes.event import CustomEvent
 from ....classes.logger import Logger
 log:logging.Logger=Logger(__name__).get_logger()
 
-onsubmitpoints:CustomEvent=CustomEvent()
-onsubmitpoints.bind(lambda:log.info("onsubmitpoints called"))
 
 class GUI(Frame):
     """Generates a GUI for recording lines"""
