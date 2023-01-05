@@ -111,7 +111,7 @@ class _MicroscopeMover:
 
         # ping the stage only if it should be connected
         if self.last_status==MicroscopeStatus.CONNECTED:
-            self.last_status:MicroscopeStatus=self._ping_all()
+            self.last_status=self._ping_all()
 
         # close the connection if something is unresponsive
         if (    self.last_status==MicroscopeStatus.SOLIS_UNRESPONSIVE or
