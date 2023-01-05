@@ -31,6 +31,6 @@ LOOPBACK_B:str= _loop_back[2]
 _stage_port: tuple[bool, str]=find_stage()
 STAGE_EXISTS:bool=_stage_port[0]
 STAGE_PORT:str=_stage_port[1]
-"""Port that SOLIS connects to for connection with the stage controller. 
+"""Port that SOLIS connects to for connection with the stage controller.
 To be written to SOLIS.cfg
 """
