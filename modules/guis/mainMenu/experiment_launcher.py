@@ -25,7 +25,7 @@ def _run() -> None:
         i:int=0
         experiment_dir: str=""
         while True:
-            experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3) )
+            experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
             if not os.path.isdir(experiment_dir):
                 os.mkdir(experiment_dir)
                 break
@@ -36,27 +36,31 @@ def _run() -> None:
 
             #prompt the user for a medium
             medium:str=_prompt_medium()
+            if medium!="":
+                #add the experiment to sessionData and close the popup
+                relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
+                session_data.add_experiment(relative_path,medium)
+                log.info("Starting experiment")
 
-            #add the experiment to sessionData and close the popup
-            relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
-            session_data.add_experiment(relative_path,medium)
-            log.info("Starting experiment")
-
-            #launch the experiment
-            mover.set_output_directory(experiment_dir)
-            for point in session_data.data_struct.local_points:
-                mover.set_coordinates(point.coordinate)
-                mover.take_capture(point.filename)
+                #launch the experiment
+                mover.set_output_directory(experiment_dir)
+                for point in session_data.data_struct.local_points:
+                    mover.set_coordinates(point.coordinate)
+                    mover.take_capture(point.filename)
+            else:
+                log.info("Environment was not selected")
 
 def _prompt_medium() -> str:
     #Generates an environment popup
     top_level: Toplevel=Toplevel()
     top_level.title("Select an environment")
     experiment_medium: StringVar=StringVar()
-
+    def on_closing() -> None:
+        experiment_medium.set("")
+    top_level.protocol("WM_DELETE_WINDOW", on_closing)
     #lists all environments in a square
-    square_size: int=math.ceil(math.sqrt(len(configuration.MEDIA)))
-    for ind, med in enumerate(configuration.MEDIA):
+    square_size: int=math.ceil(math.sqrt(len(configuration.get_media())))
+    for ind, med in enumerate(configuration.get_media()):
         Radiobutton(top_level, text = med, variable = experiment_medium, indicatoron=False,
                 value = med,
                 background = "light blue").grid(
@@ -66,6 +70,7 @@ def _prompt_medium() -> str:
                     ipadx=5,
                     sticky="news")
     # wait until something is chosen
+    
     top_level.wait_variable(experiment_medium)
 
     #Confirmation button appears only after an environment has been selected

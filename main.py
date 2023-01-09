@@ -12,7 +12,8 @@ from modules.guis.mainMenu import main_scene
 from modules.helpers.configuration import (
     STAGE_EXISTS, LOOPBACK_EXISTS,
     LOOPBACK_A, LOOPBACK_B,
-    STAGE_PORT
+    STAGE_PORT,
+    reload_media
     )
 
 
@@ -68,6 +69,7 @@ master.grid_columnconfigure(1, weight=1)
 
 menubar: Menu = Menu(master)
 filemenu: Menu = Menu(menubar, tearoff=0)
+filemenu.add_command(label="Reload environment data", command=reload_media)
 filemenu.add_command(label="Load last anchors", command=load_last_anchors)
 filemenu.add_command(label="Move to N-th point", command=open_move_to_nth_point)
 filemenu.add_separator()

@@ -10,10 +10,19 @@ TITLE_FONT: tuple[Literal['Arial'], int]=(_FONT,TITLE_SIZE)
 TEXT_FONT: tuple[Literal['Arial'], int]=(_FONT,TEXT_SIZE)
 
 #media for experiments
-MEDIA:list[str]=[]
-with open("./media_list.txt", encoding="utf-8") as file:
-    for line in file:
-        MEDIA.append(line.rstrip())
+_media:list[str]=[]
+def reload_media() -> None:
+    """Fetches the environments from media_list.txt"""
+    _media.clear()
+    with open("./media_list.txt", encoding="utf-8") as file:
+        for line in file:
+            _media.append(line.rstrip())
+
+def get_media() -> list[str]:
+    """Returns currently loaded media"""
+    return _media
+
+reload_media()
 
 #names of references
 REFERENCE_NAMES: list[str]=["dark","white","darkForWhite"]
