@@ -6,19 +6,20 @@ appPortNumber=3
 endReached=0
 while (endReached==0)
 	read("SOLIS.cfg", configLine$)
-	print("test1")
-	if (strcomp(configLine$,"STAGE_PORT")==0) then
-		read("SOLIS.cfg", configVal$)
-		stagePortNumber=val(configVal$)
+	if (len(configLine$)>0) then
+		if (strcomp(configLine$,"STAGE_PORT")==0) then
+			read("SOLIS.cfg", configVal$)
+			stagePortNumber=val(configVal$)
+		endif
+		if (strcomp(configLine$,"APP_PORT")==0) then
+			read("SOLIS.cfg", configVal$)
+			appPortNumber=val(configVal$)
+		endif
+		if (strcomp(configLine$,"END")==0) then
+			endReached=1
+		endif
 	endif
-	print("test2")
-	if (strcomp(configLine$,"APP_PORT")==0) then
-		read("SOLIS.cfg", configVal$)
-		appPortNumber=val(configVal$)
-	endif
-	if (strcomp(configLine$,"END")==0) then
-		endReached=1
-	endif
+	
 wend
 close()
 print("Stage port: COM";stagePortNumber)
