@@ -80,6 +80,8 @@ class SessionData():
         self.local_anchors:list[Coordinate]=[]
         self.dir:str=""
 
+        self.last_anchors:list[Coordinate]=[]
+
         self.onstatuschange:CustomEvent=CustomEvent("session_dataGUI.onstatuschange")
         self.onpointchange:CustomEvent=CustomEvent("session_dataGUI.onpointchange")
 
@@ -93,7 +95,8 @@ class SessionData():
             "points":[point.pack() for point in self.points],
             "refs":[reference.pack() for reference in self.references],
             "anchors":[anchor.to_dict(rounding=True) for anchor in self.anchors],
-            "experiments":[exp.pack() for exp in self.experiments]
+            "experiments":[exp.pack() for exp in self.experiments],
+            "last_anchors":[anchor.to_dict(rounding=True) for anchor in self.last_anchors]
             }
     def unpack(self, dictionary:dict[str, Any]) -> None:
         """Extracts values from a dictionary."""
@@ -105,8 +108,10 @@ class SessionData():
             for experiment in dictionary["experiments"]
             ]
         self.references=[SessionDataReference.unpack(reference) for reference in dictionary["refs"]]
-        self.anchors=[Coordinate(coord["x"],coord["y"]) for coord in dictionary["anchors"]]
+        self.anchors=[Coordinate.from_dict(coord) for coord in dictionary["anchors"]]
         self.local_points=[]
+
+        self.last_anchors=[Coordinate.from_dict(coord) for coord in dictionary["last_anchors"]]
 
         # Local points is set if, and only if the point setting process was halted half way,
         #   that is, points were set, but the anchors were not
@@ -165,6 +170,8 @@ def set_local_anchors(anchor_a:Coordinate, anchor_b:Coordinate, anchor_c:Coordin
     #set local anchors and the flag
     data_struct.local_anchors=[anchor_a,anchor_b,anchor_c]
     data_struct.local_anchors_set=True
+    #set last anchors
+    data_struct.last_anchors=[anchor_a,anchor_b,anchor_c]
     #set global anchors if none are set
     if not data_struct.anchors_set:
         _set_anchors()
@@ -178,6 +185,22 @@ def _set_anchors() -> None:
     data_struct.anchors_set=True
     save()
     data_struct.onstatuschange()
+
+def load_last_anchors() -> bool:
+    """If anchors were ever set, load last known anchors"""
+    if data_struct.anchors_set:
+        try:
+            assert len(data_struct.last_anchors)==3
+            set_local_anchors(
+                data_struct.last_anchors[0],
+                data_struct.last_anchors[1],
+                data_struct.last_anchors[2])
+            messagebox.showinfo("Loading Successful", "Last known anchors set.")#type: ignore
+            return True
+        except AssertionError:
+            log.error("The anchor flag was set, but last_anchors were not.", exc_info=True)
+    messagebox.showerror("Unable to load last anchors.", "No anchors have been set.")#type: ignore
+    return False
 
 def add_data_point(point:Coordinate) -> None:
     """Adds a point to the local point list"""
