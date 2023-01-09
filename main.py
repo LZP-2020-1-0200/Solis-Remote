@@ -28,16 +28,26 @@ if not LOOPBACK_EXISTS:
         "Serial loopback connection not found!\n"+
         "If you wish to connect to SOLIS, fix your connection and restart the program.")
 
-#set up the config file for SOLIS
+# set up the config file for SOLIS
+# NOTE: if the values were taken from the config file they will just be rewritten
+# The file should be available because SOLIS only reads the file on init
 if STAGE_EXISTS and LOOPBACK_EXISTS:
     with open("./SOLIS.cfg","w",encoding='utf-8') as f:
-        f.write(f"STAGE_PORT\n{STAGE_PORT[3:]}\nAPP_PORT\n{LOOPBACK_B[3:]}\nEND")
-    log.info("Ports set. Loopback ports: %s and %s, Stage port: %s", LOOPBACK_A, LOOPBACK_B, STAGE_PORT)
+        f.write(
+            f"STAGE_PORT\n{STAGE_PORT[3:]}\n"+
+            f"APP_PORT\n{LOOPBACK_B[3:]}\n"+
+            f"APP_LOOPBACK_PORT\n{LOOPBACK_A[3:]}\n"+
+            "END")
+    log.info("Ports set. Loopback ports: %s and %s, Stage port: %s",
+        LOOPBACK_A, LOOPBACK_B, STAGE_PORT)
 else:
-    log.warning("Ports not available.")
+    messagebox.showinfo("Unable to locate ports.",#type: ignore
+        "The loopback and stage ports are unavailable."+
+        "Defaulting to last known ports.")
+
 
 def open_move_to_nth_point() -> None:
-    """Opens a toplevel that enables moving to a specific point"""
+    """Opens a `Toplevel` that enables moving to a specific point"""
     if (data_struct.anchors_set and
         data_struct.local_anchors_set and
         data_struct.points_set):

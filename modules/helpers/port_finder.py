@@ -61,6 +61,70 @@ def find_stage() -> tuple[bool, str]:
             continue
     return False, ''
 
+def find_stage_or_default() -> tuple[bool, str]:
+    """Finds the stage port and checks if it isn't SOLIS in disguise.
+    Returns True in the bool if it's found successfully,
+    False, if neither stage port nor default port were found
+    """
+    is_solis_blocking_ports:bool=False
+    stage_found_automatically:bool
+    found_port:str
+    stage_found_automatically,found_port=find_stage()
+    if stage_found_automatically:
+        #we need to make sure it is the stage and not SOLIS forwarding the port
+        ser_port:serial.Serial=serial.Serial(found_port)
+        ser_port.write_timeout=0.1
+        ser_port.timeout=0.1
+        ser_port.read_all()
+        # When writing "PING\r", the stage will respond with R (default behaviour),
+        # but SOLIS would capture that command and return "PING\r"
+        ser_port.write(b"PING\r")#type: ignore
+        response:str=ser_port.read_until(b"\r").decode('utf-8')#type: ignore
+        if response=="PING\r":
+            is_solis_blocking_ports=True
+        ser_port.close()
+    #if the stage port is blocked, return what is found on config file
+    if is_solis_blocking_ports:
+        with open("./SOLIS.cfg","r",encoding='utf-8') as file:
+            line:str=""
+            for line in file:
+                line=line.rstrip()
+                if line=="STAGE_PORT":
+                    line=file.readline()
+                    return True, "COM"+line.rstrip()
+            return False, ""
+    else:
+        return True, found_port
+
+def find_loop_back_or_default() -> tuple[bool, str, str]:
+    """Locates loopback ports or defaults to previously found ports, 
+    bool is True if loopback was found,
+    False if neither valid ports nor a default ports were found
+    """
+    is_loop_back_found:bool
+    lp_port_a:str=""
+    lp_port_b:str=""
+
+    is_loop_back_found, lp_port_a, lp_port_b=find_loop_back()
+    if not is_loop_back_found:
+        is_a_found:bool=False
+        is_b_found:bool=False
+        with open("./SOLIS.cfg","r",encoding='utf-8') as file:
+            for line in file:
+                line=line.rstrip()
+                if line=="APP_LOOPBACK_PORT":
+                    lp_port_a="COM"+file.readline().rstrip()
+                    is_a_found=True
+                elif line=="APP_PORT":
+                    lp_port_b="COM"+file.readline().rstrip()
+                    is_b_found=True
+        if is_a_found and is_b_found:
+            return True, lp_port_a, lp_port_b
+        else:
+            return False, "", ""
+    else:
+        return True, lp_port_a,lp_port_b
+
 if __name__=="__main__":
     print(get_com_ports())
     print(find_loop_back())

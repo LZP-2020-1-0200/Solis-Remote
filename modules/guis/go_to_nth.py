@@ -21,16 +21,19 @@ class GUI(Frame):
         side_bar:Frame=Frame(self)
         side_bar.grid(column=1,row=0)
         Entry(side_bar,textvariable=self.point).grid(column=0,row=0, columnspan=2)
-        Button(side_bar,text="Go to point",command=self._go_to_point_var).grid(column=0, row=1, columnspan=1)
-        Button(side_bar,text="Previous point", command=self._previous_point).grid(column=0, row=2)
-        Button(side_bar,text="Next point", command=self._next_point).grid(column=1, row=2)
+        Button(side_bar,text="Go to point",
+            command=self._go_to_point_var).grid(column=0, row=1, columnspan=1)
+        Button(side_bar,text="Previous point",
+            command=self._previous_point).grid(column=0, row=2)
+        Button(side_bar,text="Next point",
+            command=self._next_point).grid(column=1, row=2)
 
         log.info("GUI init")
 
     def _go_to_point(self) -> None:
         valid_num:bool=True
         if self.last_index>=len(data_struct.local_points) or self.last_index<0:
-                valid_num=False
+            valid_num=False
         if connection.get_status() and valid_num:
             if data_struct.local_points[self.last_index] is not None:
                 mover.set_coordinates(data_struct.local_points[self.last_index].coordinate)
@@ -41,7 +44,7 @@ class GUI(Frame):
     def _previous_point(self) -> None:
         self.last_index=max(0,self.last_index-1)
         self._go_to_point()
-    
+
     def _next_point(self) -> None:
         self.last_index=min(len(data_struct.points)-1,self.last_index+1)
         self._go_to_point()
