@@ -68,7 +68,7 @@ class _MicroscopeMover:
         """
 
         logger.info("Checking port status")
-        timeout:float=0.1
+        timeout:float=0.3
         if self.serial.is_open:
             previous_timeout:float|None=self.serial.timeout#type: ignore
             previous_write_timeout:float|None=self.serial.write_timeout#type: ignore
@@ -86,11 +86,9 @@ class _MicroscopeMover:
                 return MicroscopeStatus.SOLIS_UNRESPONSIVE
 
             #SOLIS is responsive, check if stage responds
-            self.serial.write(b"P \r")#type: ignore
-            response=self.serial.read_until(b"\r").decode("utf-8")#type: ignore
-
-            #Stage did not respond
-            if len(response)==0:
+            self.serial.write(b"SERIAL\r")#type: ignore
+            response: str=self.serial.read_until(b"\r").decode('utf-8').rstrip()#type: ignore
+            if not response.isnumeric():
                 logger.info("Stage unresponsive")
                 self.serial.write_timeout=previous_write_timeout
                 self.serial.timeout=previous_timeout
@@ -140,10 +138,12 @@ class _MicroscopeMover:
         `cord`: The absolute coordinates to where should the stage be moved to
         returns True if successful
         """
-        logger.info("Going to: %i, %i", coord.x, coord.y)
-        string: str = f"G,{coord.x},{coord.y} \r"
+        rounded_coord: Coordinate=coord.rounded()
+        logger.info("Going to: %i, %i", rounded_coord.x, rounded_coord.y)
+        string: str = f"G,{rounded_coord.x},{rounded_coord.y} \r"
         self.serial.write(string.encode())#type: ignore
 
+        #wait until stage reaches it's destination
         while self.serial.read_until(b"\r")[-2:] != b"R\r":#type: ignore
             time.sleep(0.05)
 

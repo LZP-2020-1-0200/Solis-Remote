@@ -1,6 +1,12 @@
 """Functions for locating loopback and stage ports"""
+import logging
 import serial #type: ignore
 import serial.tools.list_ports #type: ignore
+
+from ..classes.logger import Logger
+
+
+log:logging.Logger=Logger(__name__).get_logger()
 
 def get_com_ports() -> list[str]:
     """Returns a list of all COM ports"""
@@ -41,6 +47,7 @@ def find_loop_back() -> tuple[bool,str,str]:
 def find_stage() -> tuple[bool, str]:
     """Returns a tuple of a bool that denotes if the stage port was successfuly found
     and the port name
+    Can be wrong if SOLIS is tunnelling to it
     """
     port:serial.Serial=serial.Serial()
     available_ports:list[str]=get_com_ports()
@@ -79,12 +86,12 @@ def find_stage_or_default() -> tuple[bool, str]:
         # When writing "PING\r", the stage will respond with R (default behaviour),
         # but SOLIS would capture that command and return "PING\r"
         ser_port.write(b"PING\r")#type: ignore
-        response:str=ser_port.read_until(b"\r").decode('utf-8')#type: ignore
-        if response=="PING\r":
+        response:str=ser_port.read_until(b"\r").decode('utf-8').rstrip()#type: ignore
+        if response!="R":
             is_solis_blocking_ports=True
         ser_port.close()
     #if the stage port is blocked, return what is found on config file
-    if is_solis_blocking_ports:
+    if not stage_found_automatically or is_solis_blocking_ports:
         with open("./SOLIS.cfg","r",encoding='utf-8') as file:
             line:str=""
             for line in file:
@@ -129,3 +136,5 @@ if __name__=="__main__":
     print(get_com_ports())
     print(find_loop_back())
     print(find_stage())
+    print(find_loop_back_or_default())
+    print(find_stage_or_default())

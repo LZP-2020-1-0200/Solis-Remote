@@ -34,8 +34,8 @@ class GUI(Frame):
         valid_num:bool=True
         if self.last_index>=len(data_struct.local_points) or self.last_index<0:
             valid_num=False
-        if connection.get_status() and valid_num:
-            if data_struct.local_points[self.last_index] is not None:
+        if valid_num:
+            if connection.get_status() and data_struct.local_points[self.last_index] is not None:
                 mover.set_coordinates(data_struct.local_points[self.last_index].coordinate)
         else:
             messagebox.showwarning("Unable to go to point",#type: ignore
