@@ -35,15 +35,14 @@ function ~HandleSolisCommands(line$)
 		args$=mid$(line$,spaceIndex+1, len(line$)-spaceIndex)
 	endif
 	
-	HandleSolisCommands=1		
-	SOLISresponse$=""
+	HandleSolisCommands=0
 	if (strcomp(command$, "PING")==0) then
-		HandleSolisCommands=0
-		SOLISresponse$="PING"
+		HandleSolisCommands=1
+		SOLISresponse$="OK"
 		print("ping received...")
 	endif
 	if (strcomp(command$,"RUN")==0) then
-		HandleSolisCommands=0
+		HandleSolisCommands=2
 		SOLISresponse$="OK"
 		run()
 		fileName$=""
@@ -58,11 +57,11 @@ function ~HandleSolisCommands(line$)
 		closeWindow(#0)
 	endif
 	if (strcomp(command$,"SDIR")==0) then
-		HandleSolisCommands=0
+		HandleSolisCommands=3
 		SaveDir$=args$
 		SOLISresponse$="OK"
 	endif
-	
+	print(SOLISresponse$)
 	
 return
 
@@ -73,7 +72,7 @@ while(1)
 	comread(1,pyInput$)
 	print("received...")
 	print(pyInput$)
-	if (~HandleSolisCommands(pyInput$)) then
+	if (~HandleSolisCommands(pyInput$)==0) then
 		print("forwarding to stage...")
 		comwrite(stagePortNumber,pyInput$)
 		comread(stagePortNumber,stageResponse$)
@@ -81,7 +80,8 @@ while(1)
 		comwrite(appPortNumber,stageResponse$)
 	else
 		print("capturing")
-		comwrite(appPortNumber,SOLISresponse$)
+		print(SOLISresponse$)
+		comwrite(appPortNumber,"OK")
 	endif
 	
 	

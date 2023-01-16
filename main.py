@@ -6,7 +6,7 @@ import logging
 from modules.classes.scene_switcher import SceneSwitcher
 from modules.classes.logger import Logger
 from modules.classes.session_data import data_struct, load_last_anchors
-from modules.guis import session_loader, connection, anchors, go_to_nth
+from modules.guis import session_loader, connection, anchors, go_to_nth, go_to_anchors
 from modules.guis.PointRecording import point_record
 from modules.guis.mainMenu import main_scene
 from modules.helpers.configuration import (
@@ -61,6 +61,17 @@ def open_move_to_nth_point() -> None:
         messagebox.showwarning("Unable to open window.",#type: ignore
             "Points and/or anchors have not been set.")
 
+def open_move_to_anchor() -> None:
+    """Opens a `Toplevel` that enables moving to a specific point"""
+    if data_struct.local_anchors_set:
+        log.info("Opening go to anchor window")
+        top: Toplevel=Toplevel()
+        go_to_anchors.GUI(top).pack()
+
+    else:
+        messagebox.showwarning("Unable to open window.",#type: ignore
+            "Anchors have not been set.")
+
 # creating main tkinter window/toplevel
 master: Tk = Tk()
 master.title("SolisXY GUI")
@@ -72,6 +83,7 @@ filemenu: Menu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="Reload environment data", command=reload_media)
 filemenu.add_command(label="Load last anchors", command=load_last_anchors)
 filemenu.add_command(label="Move to N-th point", command=open_move_to_nth_point)
+filemenu.add_command(label="Move to anchor", command=open_move_to_anchor)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=master.quit)
 menubar.add_cascade(label="Options", menu=filemenu)

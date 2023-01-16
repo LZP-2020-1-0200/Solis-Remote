@@ -43,9 +43,9 @@ class GUI(Frame):
             return
 
         session_data.data_struct.dir=session_directory
-        session_data.load()
-        self.onload()
-        self.ontomenu()
+        if session_data.load():
+            self.onload()
+            self.ontomenu()
 
     def _create_session(self) -> None:
         """Prompts user to select session and creates data"""
@@ -58,7 +58,7 @@ class GUI(Frame):
 
         session_data.data_struct.dir=session_directory
         session_data.session_setup()
-        session_data.load()
-        self.oncreate()
-        self.ontomenu()
+        if session_data.load():
+            self.oncreate()
+            self.ontomenu()
     

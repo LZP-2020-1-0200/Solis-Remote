@@ -76,7 +76,7 @@ class _MicroscopeMover:
             self.serial.write_timeout=timeout
             logger.info("Pinging SOLIS")
             self.serial.write(b"PING\r")#type: ignore
-            response:str=self.serial.read_until(b"PING\r").decode("utf-8")#type:ignore
+            response:str=self.serial.read_until(b"PING\r").decode("utf-8").strip()#type:ignore
 
             # SOLIS is unresponsive
             if len(response)==0:

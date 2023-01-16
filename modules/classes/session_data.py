@@ -82,8 +82,8 @@ class SessionData():
 
         self.last_anchors:list[Coordinate]=[]
 
-        self.onstatuschange:CustomEvent=CustomEvent("session_dataGUI.onstatuschange")
-        self.onpointchange:CustomEvent=CustomEvent("session_dataGUI.onpointchange")
+        self.onstatuschange:CustomEvent=CustomEvent("session_data.onstatuschange")
+        self.onpointchange:CustomEvent=CustomEvent("session_data.onpointchange")
 
     def pack(self)->dict[str,Any]:
         """Creates a dictionary from the values"""
@@ -98,20 +98,70 @@ class SessionData():
             "experiments":[exp.pack() for exp in self.experiments],
             "last_anchors":[anchor.to_dict(rounding=True) for anchor in self.last_anchors]
             }
-    def unpack(self, dictionary:dict[str, Any]) -> None:
+    def unpack(self, dictionary:dict[str, Any]) -> bool:
         """Extracts values from a dictionary."""
-        self.points_set=dictionary["flags"]["points_set"]
-        self.anchors_set=dictionary["flags"]["anchors_set"]
-        self.points=[SessionDataPoint.unpack(point) for point in dictionary["points"]]
-        self.experiments=[
-            SessionDataExperiment.unpack(experiment)
-            for experiment in dictionary["experiments"]
+        no_problems_found:bool=True
+        if "flags" in dictionary:
+            if "points_set" in dictionary["flags"]:
+                self.points_set=dictionary["flags"]["points_set"]
+            else:
+                log.warning("Points set flag not found.")
+                no_problems_found=False
+
+            if "anchors_set" in dictionary["flags"]:
+                self.anchors_set=dictionary["flags"]["anchors_set"]
+            else:
+                log.warning("Anchors set flag not found.")
+                no_problems_found=False
+        else:
+            log.warning("Flags not found in dictionary.")
+            no_problems_found=False
+
+        if "points" in dictionary:
+            self.points=[SessionDataPoint.unpack(point) for point in dictionary["points"]]
+        else:
+            log.warning("Points not found in dictionary.")
+            no_problems_found=False
+
+        if "experiments" in dictionary:
+            self.experiments=[
+                SessionDataExperiment.unpack(experiment)
+                for experiment in dictionary["experiments"]
+                ]
+        else:
+            log.warning("Experiments not found in dictionary.")
+            no_problems_found=False
+
+        if "refs" in dictionary:
+            self.references=[
+                SessionDataReference.unpack(reference)
+                for reference in dictionary["refs"]
             ]
-        self.references=[SessionDataReference.unpack(reference) for reference in dictionary["refs"]]
-        self.anchors=[Coordinate.from_dict(coord) for coord in dictionary["anchors"]]
+        else:
+            log.warning("References not found in dictionary.")
+            no_problems_found=False
+
+        if "anchors" in dictionary:
+            self.anchors=[Coordinate.from_dict(coord) for coord in dictionary["anchors"]]
+        else:
+            log.warning("Anchors not found in dictionary.")
+            no_problems_found=False
+
         self.local_points=[]
 
-        self.last_anchors=[Coordinate.from_dict(coord) for coord in dictionary["last_anchors"]]
+        if "last_anchors" in dictionary:
+            self.last_anchors=[Coordinate.from_dict(coord) for coord in dictionary["last_anchors"]]
+        else:
+            log.warning("Last anchors not found in dictionary.")
+            no_problems_found=False
+        if not no_problems_found:
+            messagebox.showwarning(#type: ignore
+                title="Problems loading session",
+                message="The json file is lacking one or more of the necessary files. "+
+                "Please add the missing fields in the json file and try again. "+
+                "See logs for missing fields.")
+            return False
+
 
         # Local points is set if, and only if the point setting process was halted half way,
         #   that is, points were set, but the anchors were not
@@ -126,6 +176,7 @@ class SessionData():
                 SessionDataPoint(pt.coordinate.x,pt.coordinate.y,pt.filename)
                 for pt in self.points
                 ]
+        return True
 
 data_struct:SessionData=SessionData()
 
@@ -137,13 +188,15 @@ def save() -> None:
     with open(data_struct.dir+"/session.json", "w", encoding="utf-8") as session_file:
         json.dump(data_struct.pack(),session_file,indent=4)
 
-def load() -> None:
+def load() -> bool:
     """loads the session.json from dictionary"""
     log.info("Loading data")
     with open(data_struct.dir+"/session.json", "r", encoding="utf-8") as session_file:
-        data_struct.unpack(json.load(session_file))
+        if not data_struct.unpack(json.load(session_file)):
+            return False
     data_struct.onstatuschange()
     data_struct.onpointchange()
+    return True
 
 def calculate_relative_points() -> None:
     """Calculates local points from anchors and stored points"""
