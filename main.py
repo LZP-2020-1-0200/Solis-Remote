@@ -3,8 +3,7 @@
 from tkinter import Tk, Frame, mainloop, messagebox, Menu, Toplevel
 import logging
 
-from modules.classes.scene_switcher import SceneSwitcher
-from modules.classes.logger import Logger
+from modules.classes import EventSocket, SceneSwitcher, Logger
 from modules.classes.session_data import data_struct, load_last_anchors
 from modules.guis import session_loader, connection, anchors, go_to_nth, go_to_anchors
 from modules.guis.PointRecording import point_record
@@ -16,6 +15,7 @@ from modules.helpers.configuration import (
     reload_media
     )
 
+EventSocket()# generate the instance
 
 log:logging.Logger=Logger(__name__).get_logger()
 

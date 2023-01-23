@@ -5,14 +5,15 @@ from typing import Literal
 import logging
 from tkinter import Frame, Button, Label, StringVar, Toplevel, messagebox, Radiobutton, Misc
 from .. import connection
-from ...classes.mover import mover
-from ...classes import session_data
+from ...classes import mover, session_data, EventSocket, SockEventType, CustomEvent
 from ...helpers import configuration
 from ...helpers.configuration import TEXT_FONT
 
 from ...classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
+
+oncapture:CustomEvent=CustomEvent("experiment_launcher.oncapture")
 
 def _run() -> None:
     """Launches an experiment and stores all recorded points in a folder"""
@@ -45,7 +46,9 @@ def _run() -> None:
                 #launch the experiment
                 mover.set_output_directory(experiment_dir)
                 for point in session_data.data_struct.local_points:
+
                     mover.set_coordinates(point.coordinate)
+                    EventSocket().send_event(event=SockEventType.CAPTURE)
                     mover.take_capture(point.filename)
             else:
                 log.info("Environment was not selected")
@@ -70,7 +73,7 @@ def _prompt_medium() -> str:
                     ipadx=5,
                     sticky="news")
     # wait until something is chosen
-    
+
     top_level.wait_variable(experiment_medium)
 
     #Confirmation button appears only after an environment has been selected

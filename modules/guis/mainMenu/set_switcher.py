@@ -2,10 +2,8 @@
 from tkinter import Button, Frame, Misc
 import logging
 
-from ...classes.event import CustomEvent
+from ...classes import session_data, Logger, CustomEvent
 from ...helpers.configuration import TEXT_FONT
-from ...classes import session_data
-from ...classes.logger import Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 

@@ -7,9 +7,7 @@ import logging
 
 from ..helpers.configuration import TEXT_FONT, LOOPBACK_A
 
-from ..classes.mover import mover, MicroscopeStatus
-from ..classes.event import CustomEvent
-from ..classes.logger import Logger
+from ..classes import mover, MicroscopeStatus, CustomEvent, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 

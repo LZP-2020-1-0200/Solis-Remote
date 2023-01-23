@@ -3,8 +3,7 @@ import logging
 from tkinter import Frame, Button, Misc
 from . import connection
 from ..classes.session_data import data_struct
-from ..classes.mover import mover
-from ..classes.logger import Logger
+from ..classes import mover, Logger
 from ..helpers.configuration import TEXT_FONT
 
 log:logging.Logger=Logger(__name__).get_logger()

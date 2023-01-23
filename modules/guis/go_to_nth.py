@@ -4,8 +4,7 @@ from tkinter import Frame, Entry, Button, Misc, StringVar, messagebox
 from .PointRecording import point_display
 from . import connection
 from ..classes.session_data import data_struct
-from ..classes.mover import mover
-from ..classes.logger import Logger
+from ..classes import mover, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 

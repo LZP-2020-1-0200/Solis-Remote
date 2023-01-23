@@ -7,9 +7,7 @@ from tkinter import Label, Button, Misc, Frame, messagebox
 from ...helpers.configuration import TITLE_FONT, REFERENCE_NAMES, TEXT_FONT
 
 from .. import connection
-from ...classes.mover import mover
-from ...classes.logger import Logger
-from ...classes import session_data
+from ...classes import mover, Logger, session_data
 log:logging.Logger=Logger(__name__).get_logger()
 
 

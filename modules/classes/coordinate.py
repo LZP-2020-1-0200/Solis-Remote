@@ -7,9 +7,9 @@ import csv
 from math import atan2, cos, degrees, radians, sin, sqrt
 
 from logging import Logger
-from . import logger
+from .logger import Logger as CustomLogger
 
-logger_instance: Logger = logger.Logger(__name__).get_logger()
+logger_instance: Logger = CustomLogger(__name__).get_logger()
 
 
 UNIT_TO_NANOMETER: Literal[40] = 40

@@ -4,9 +4,7 @@ import logging
 
 from ..helpers.configuration import TEXT_FONT
 
-from ..classes.event import CustomEvent
-from ..classes import session_data
-from ..classes.logger import Logger
+from ..classes import session_data, Logger, CustomEvent
 
 
 

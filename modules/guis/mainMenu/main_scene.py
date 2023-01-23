@@ -2,7 +2,7 @@
 from tkinter import Frame, Misc
 import logging
 from . import experiment_launcher, reference_manager, set_switcher
-from ...classes.logger import Logger
+from ...classes import Logger
 log:logging.Logger=Logger(__name__).get_logger()
 
 class GUI(Frame):

@@ -7,11 +7,7 @@ from ..helpers.configuration import TEXT_FONT, TITLE_FONT
 from ..guis import connection
 from ..guis.PointRecording import set_loc
 
-from ..classes import session_data
-from ..classes.coordinate import Coordinate
-from ..classes.mover import mover
-from ..classes.event import CustomEvent
-from ..classes.logger import Logger
+from ..classes import session_data, Coordinate, mover, CustomEvent, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
