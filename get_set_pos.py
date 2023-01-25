@@ -1,5 +1,4 @@
-from modules.classes.mover import mover
-from modules.classes.coordinate import Coordinate
+from modules.classes import mover, Coordinate
 
 mover.connect("COM6")
 

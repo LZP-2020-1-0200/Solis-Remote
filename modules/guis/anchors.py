@@ -4,8 +4,8 @@ import logging
 
 from ..helpers.configuration import TEXT_FONT, TITLE_FONT
 
-from ..guis import connection
-from ..guis.PointRecording import set_loc
+from . import connection
+from .PointRecording import set_loc
 
 from ..classes import session_data, Coordinate, mover, CustomEvent, Logger
 
