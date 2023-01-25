@@ -1,3 +1,4 @@
+"""Contains a class containing a singleton for broadcasting events"""
 import socket
 import threading
 from enum import IntEnum
@@ -25,13 +26,13 @@ class EventSocket():
     def __init__(self) -> None:
         if not EventSocket.__generated:
             self.__socket: socket.socket=socket.socket(
-            socket.AF_INET,
-            socket.SOCK_STREAM)
+                socket.AF_INET,
+                socket.SOCK_STREAM)
             self.__socket.settimeout(1)
             self.__socket.bind(('',PORT_NUMBER))
             self.__socket.listen(5)
             self.__out_sockets:list[socket.socket]=[]
-            self.__accept_cons=True
+            self.__accept_cons:bool=True
             # create a seperate thread that accepts all incoming connections.
             # this thread get's killed on program exit
             self.__acceptor:threading.Thread=threading.Thread(target=self.__accept,daemon=True)
@@ -77,7 +78,7 @@ class EventSocket():
         for remov in removables:
             self.__out_sockets.remove(remov)
 
-    def send_event(self, event:SockEventType):
+    def send_event(self, event:SockEventType) -> None:
         """Broadcasts an event to all connections"""
         self.broadcast(event.to_bytes(length=1, byteorder='big'))
 

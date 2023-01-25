@@ -30,21 +30,48 @@ class SessionDataPoint():
 
 class SessionDataExperiment():
     """A data struct of an experiment"""
-    def __init__(self,folder:str,name:str,timestamp:str) -> None:
+    def __init__(self,
+            folder:str,name:str,timestamp:str,
+            white_index:int=0, dark_index:int=0, d4w_index:int=0,
+            img_dir:str="") -> None:
         self.folder:str=folder
         self.name:str=name
         self.timestamp:str=timestamp
+        self.white_index:int=white_index
+        self.dark_index:int=dark_index
+        self.d4w_index:int=d4w_index
+        self.img_dir:str=img_dir
     def pack(self)->dict[str,Any]:
         """Packs the experiment object into a dictionary"""
-        return {"folder":self.folder,"name":self.name,"timestamp":self.timestamp}
+        return {
+            "folder":self.folder,
+            "name":self.name,
+            "timestamp":self.timestamp,
+            "white_index":self.white_index,
+            "dark_index":self.dark_index,
+            "d4w_index":self.d4w_index,
+            "img_dir":self.img_dir
+            }
 
     @staticmethod
     def unpack(dictionary:dict[str,Any]) -> 'SessionDataExperiment':
         """returns a new instance of `sessionDataExperiment` containing data from `dictionary`"""
+        if "white_index" not in dictionary:
+            dictionary["white_index"]=0
+        if "dark_index" not in dictionary:
+            dictionary["dark_index"]=0
+        if "d4w_index" not in dictionary:
+            dictionary["d4w_index"]=0
+        if "img_dir" not in dictionary:
+            dictionary["img_dir"]=""
         return SessionDataExperiment(
             dictionary["folder"],
             dictionary["name"],
-            dictionary["timestamp"])
+            dictionary["timestamp"],
+            dictionary["white_index"],
+            dictionary["dark_index"],
+            dictionary["d4w_index"],
+            dictionary["img_dir"])
 
 class SessionDataReference():
     """A data struct of a reference."""
