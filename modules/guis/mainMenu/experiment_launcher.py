@@ -32,7 +32,7 @@ def _run() -> None:
                 break
             i+=1
 
-        if experiment_dir is not None:
+        if experiment_dir is not "":
             log.info("Experiment directory found")
 
             #prompt the user for a medium
@@ -92,7 +92,7 @@ def _prompt_medium() -> str:
     confirmation_button.wait_variable(var)
     log.info("Medium selected")
 
-    #add the experiment to sessionData and close the popup
+    #close the popup and return
     top_level.destroy()
     return experiment_medium.get()
 
