@@ -13,11 +13,12 @@ class CustomEvent():
     """
     def __init__(self, name:str) -> None:
         self._bound_functions:list[Callable[[],None]]=[]
-        
+
         try:
             assert name is not None
         except AssertionError:
-            log.exception("An event with no name was created. An empty constructor is considered deprecated.")
+            log.exception(
+                "An event with no name was created. An empty constructor is considered deprecated.")
             name="<Unnamed>"
         # remove newlines to parse it to packets
         filtered_name=name.replace("\n"," ")

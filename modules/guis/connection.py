@@ -12,8 +12,8 @@ from ..classes import mover, MicroscopeStatus, CustomEvent, Logger
 log:logging.Logger=Logger(__name__).get_logger()
 
 def get_status()->bool:
-    """
-    Wrapper function that informs the user if connection to SOLIS has not yet been established
+    """Wrapper function that informs the user
+    if connection to SOLIS has not yet been established
     """
     log.info("Getting microscope mover status")
     status: MicroscopeStatus=mover.ping()

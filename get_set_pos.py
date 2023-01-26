@@ -1,3 +1,4 @@
+"""basic CLI for manual stage movement"""
 from modules.classes import mover, Coordinate
 
 mover.connect("COM6")
