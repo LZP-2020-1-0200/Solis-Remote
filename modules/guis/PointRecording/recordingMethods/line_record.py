@@ -2,10 +2,9 @@
 import logging
 from tkinter import StringVar, Frame,Button,Label,Entry, Misc
 
-from ....guis  import connection
 from ....classes  import session_data
 from ....helpers.configuration import TEXT_FONT
-from ....classes.mover  import mover
+from ....classes.mover  import MicroscopeMover
 from ....classes.coordinate import Coordinate
 from ....classes.event import CustomEvent
 
@@ -22,7 +21,7 @@ class GUI(Frame):
 
         Button(self,
             text="Add point",
-            command=self._reg_point,
+            command=lambda:MicroscopeMover.converse(self._reg_point),
             font=TEXT_FONT
             ).grid(row=0,column=0)
         Button(self,
@@ -71,13 +70,14 @@ class GUI(Frame):
         session_data.clear_data_points()
         session_data.add_data_points(total_coords)
 
-    def _reg_point(self) -> None:
+
+
+    def _reg_point(self, mover:MicroscopeMover) -> None:
         """Adds the current stage position and recalculates points"""
-        if connection.get_status():
-            coord:Coordinate
-            coord=mover.get_coordinates()
-            self.point_coords.append(coord)
-            self._recalculate()
+        coord:Coordinate
+        coord=mover.get_coordinates()
+        self.point_coords.append(coord)
+        self._recalculate()
 
     def _unreg_point(self) -> None:
         """Removes the last coordinate and recalculates points"""

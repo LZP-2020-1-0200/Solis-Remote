@@ -1,13 +1,8 @@
 """Contains a GUI class for recording points in a rectangle pattern"""
 from tkinter import Button, Label, StringVar, Frame, Entry, messagebox
 import logging
-from ...  import connection
 from ....helpers.configuration import TEXT_FONT
-from ....classes  import session_data
-from ....classes.mover  import mover
-from ....classes.coordinate import Coordinate
-from ....classes.event import CustomEvent
-from ....classes.logger import Logger
+from ....classes  import session_data, MicroscopeMover, Coordinate, CustomEvent, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
@@ -24,17 +19,17 @@ class GUI(Frame):
         self.onsubmitpoints:CustomEvent=CustomEvent("rectangle_recordingGUI.onsubmitpoints")
         Button(self,
             text="Set point A",
-            command=lambda: self._reg_point(0),
+            command=lambda:MicroscopeMover.converse(lambda mover:self._reg_point(mover,0)),
             font=TEXT_FONT
             ).grid(row=0,column=0)
         Button(self,
             text="Set point B",
-            command=lambda: self._reg_point(1),
+            command=lambda:MicroscopeMover.converse(lambda mover:self._reg_point(mover,1)),
             font=TEXT_FONT
             ).grid(row=0,column=1)
         Button(self,
             text="Set point C",
-            command=lambda: self._reg_point(2),
+            command=lambda:MicroscopeMover.converse(lambda mover:self._reg_point(mover,2)),
             font=TEXT_FONT
             ).grid(row=0,column=2)
         Button(self,
@@ -53,12 +48,11 @@ class GUI(Frame):
         self._points:list[Coordinate|None]=[None,None,None]
         log.info("GUI init")
 
-    def _reg_point(self,ind:int) -> None:
+    def _reg_point(self,mover:MicroscopeMover,ind:int) -> None:
         """Gets the coordinates and registers them as the point with index `id`"""
-        if connection.get_status():
-            self._points[ind]=mover.get_coordinates()
-            self._recalculate()
-            messagebox.showinfo("Info", "Point registered")#type: ignore
+        self._points[ind]=mover.get_coordinates()
+        self._recalculate()
+        messagebox.showinfo("Info", "Point registered")#type: ignore
 
     def _strvar_to_int(self,str_var:StringVar) -> tuple[bool,int]:
         """converts a `StringVar` variable's value to an `int`

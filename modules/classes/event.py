@@ -2,6 +2,7 @@
 """
 import logging
 from collections.abc import Callable
+from typing import Any
 
 from .logger import Logger
 
@@ -12,7 +13,7 @@ class CustomEvent():
     Calling the object calls all bound functions.
     """
     def __init__(self, name:str) -> None:
-        self._bound_functions:list[Callable[[],None]]=[]
+        self._bound_functions:list[Callable[[],Any|None]]=[]
 
         try:
             assert name is not None
@@ -25,7 +26,7 @@ class CustomEvent():
         self.bind(lambda: log.info("%s called", filtered_name))
         self.name:str=filtered_name
 
-    def bind(self, func:Callable[[],None]) -> None:
+    def bind(self, func:Callable[[],Any|None]) -> None:
         """Binds `func` to the event,
         `func` will be called when calling this event.
         """

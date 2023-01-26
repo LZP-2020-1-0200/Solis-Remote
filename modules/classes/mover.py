@@ -1,15 +1,15 @@
 """Contains the class responsible for connecting to SOLIS and stage control"""
 import time
 import logging
+from typing import Callable
 from enum import Enum
 import serial #type: ignore
 import serial.tools.list_ports #type: ignore
 
-
 from .coordinate import Coordinate
 from .event import CustomEvent
 from .logger import Logger
-from ..helpers.configuration import BAUDRATE
+from ..helpers.configuration import BAUDRATE, LOOPBACK_A
 
 logger:logging.Logger = Logger(__name__).get_logger()
 
@@ -22,15 +22,55 @@ class MicroscopeStatus(Enum):
     CONNECTED           =3
     DISCONNECTED        =4
 
-class _MicroscopeMover:
+class MicroscopeMover:
     """
-    A private class of the mover.py module instantiated only by `mover`
+    A singleton class of the mover.py module instantiated only by `mover`
+    Does not ensure that a connection is there.
+    May block endlessly if messages are sent to a severed connection
     """
 
+    __instance:'MicroscopeMover|None'=None
+
+    ontimeout:CustomEvent=CustomEvent("MicroscopeMover.ontimeout")
+    ondisconnect:CustomEvent=CustomEvent("MicroscopeMover.ondisconnect")
+    onsolisunresponsive:CustomEvent=CustomEvent("MicroscopeMover.onsolisunresponsive")
+    onstageunresponsive:CustomEvent=CustomEvent("MicroscopeMover.onstageunresponsive")
+    onconnect:CustomEvent=CustomEvent("MicroscopeMover.onconnect")
+
     def __init__(self) -> None:
-        self.serial: serial.Serial = serial.Serial()
-        self.ontimeout:CustomEvent=CustomEvent("MicroscopeMover.ontimeout")
-        self.last_status:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
+        if MicroscopeMover.__instance is None:
+            MicroscopeMover.__instance=self
+            self.serial: serial.Serial = serial.Serial()
+            self.last_status:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
+        else:
+            try:
+                raise Exception("Creating new instances of MicroscopeMover is forbidden")
+            finally:
+                logger.error("An attempt at creating a new MicroscopeMover instance was made")
+
+    @staticmethod
+    def converse(
+            callback:'Callable[[MicroscopeMover], None]') -> MicroscopeStatus:
+        """Attempts to connect to the stage and SOLIS, if successful,
+        calls `callback`.
+
+        To supply more parameters to the target function,
+        encapsulate the target function in a lambda e.g.
+        `MicroscopeMover.converse(lambda mover:target_function(mover, ...))`
+        """
+        micro_m: MicroscopeMover
+        if MicroscopeMover.__instance is not None:
+            micro_m = MicroscopeMover.__instance
+        else:
+            micro_m = MicroscopeMover()
+        if micro_m.connect(LOOPBACK_A):
+            logger.info("Converse start.")
+            callback(micro_m)
+            logger.info("Converse end.")
+            micro_m.close_connection()
+            return MicroscopeStatus.CONNECTED
+        return micro_m.ping()
+
 
     def connect(self, com_port: str) -> bool:
         """
@@ -49,6 +89,7 @@ class _MicroscopeMover:
 
         except serial.SerialException as exception:
             logger.error(exception)
+            MicroscopeMover.ondisconnect()
             return False
         except ValueError as exception:
             logger.error(exception)
@@ -81,6 +122,7 @@ class _MicroscopeMover:
             # SOLIS is unresponsive
             if len(response)==0:
                 logger.info("SOLIS unresponsive.")
+                MicroscopeMover.onsolisunresponsive()
                 self.serial.write_timeout=previous_write_timeout
                 self.serial.timeout=previous_timeout
                 return MicroscopeStatus.SOLIS_UNRESPONSIVE
@@ -90,6 +132,7 @@ class _MicroscopeMover:
             response: str=self.serial.read_until(b"\r").decode('utf-8').rstrip()#type: ignore
             if not response.isnumeric():
                 logger.info("Stage unresponsive")
+                MicroscopeMover.onstageunresponsive()
                 self.serial.write_timeout=previous_write_timeout
                 self.serial.timeout=previous_timeout
                 return MicroscopeStatus.STAGE_UNRESPONSIVE
@@ -97,9 +140,11 @@ class _MicroscopeMover:
             #reset serial connection settings and send ok status
             self.serial.write_timeout=previous_write_timeout
             self.serial.timeout=previous_timeout
+            MicroscopeMover.onconnect()
             logger.info("Ping successful")
             return MicroscopeStatus.CONNECTED
         logger.info("Port is closed")
+        MicroscopeMover.ondisconnect()
         return MicroscopeStatus.DISCONNECTED
     def ping(self)->MicroscopeStatus:
         """Pings SOLIS and the stage to check the connection status.
@@ -234,10 +279,3 @@ class _MicroscopeMover:
 
         #block until respnse received
         return self.serial.read_until(b"\r")#type: ignore
-
-
-mover: _MicroscopeMover = _MicroscopeMover()
-"""
-The singleton instance of microscope mover.
-Used for communication to the stage and SOLIS script
-"""

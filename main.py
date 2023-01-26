@@ -3,9 +3,9 @@
 from tkinter import Tk, Frame, mainloop, messagebox, Menu, Toplevel
 import logging
 
-from modules.classes import EventSocket, SceneSwitcher, Logger
+from modules.classes import EventSocket, SceneSwitcher, Logger, MicroscopeMover
 from modules.classes.session_data import data_struct, load_last_anchors
-from modules.guis import session_loader, connection, anchors, go_to_nth, go_to_anchors
+from modules.guis import session_loader, anchors, go_to_nth, go_to_anchors
 from modules.guis.PointRecording import point_record
 from modules.guis.mainMenu import main_scene
 from modules.helpers.configuration import (
@@ -16,6 +16,14 @@ from modules.helpers.configuration import (
     )
 
 EventSocket()# generate the instance
+
+# add messagebox notifications if MM fails to connect
+MicroscopeMover.onsolisunresponsive.bind(lambda:
+    messagebox.showwarning("Warning","SolisXY GUI could not connect to SOLIS"))#type: ignore
+MicroscopeMover.onstageunresponsive.bind(lambda:
+    messagebox.showwarning("Warning","Stage is not reachable. Check your connection."))#type: ignore
+MicroscopeMover.ondisconnect.bind(lambda:
+    messagebox.showwarning("Warning","Unable to establish a connection."))#type: ignore
 
 log:logging.Logger=Logger(__name__).get_logger()
 
@@ -88,8 +96,6 @@ filemenu.add_separator()
 filemenu.add_command(label="Exit", command=master.quit)
 menubar.add_cascade(label="Options", menu=filemenu)
 
-connection_frame: Frame=connection.GUI(master)
-connection_frame.grid(row=0,column=0)
 
 main_frame: Frame=Frame(master)
 main_frame.grid(row=1,column=0)

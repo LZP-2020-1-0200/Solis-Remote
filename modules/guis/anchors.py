@@ -4,10 +4,8 @@ import logging
 
 from ..helpers.configuration import TEXT_FONT, TITLE_FONT
 
-from . import connection
 from .PointRecording import set_loc
-
-from ..classes import session_data, Coordinate, mover, CustomEvent, Logger
+from ..classes import session_data, Coordinate, MicroscopeMover, CustomEvent, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
@@ -20,11 +18,14 @@ class GUI(Frame):
         Label(self,font=TITLE_FONT, text="Anchors").grid(row=0,column=0,columnspan=3)
 
         Button(self, font=TEXT_FONT,
-            command=lambda:self._set_anchor(0), text="Set anchor 1").grid(row=1,column=0)
+            command=lambda:MicroscopeMover.converse(lambda mover: self._set_anchor(mover, 0)),
+            text="Set anchor 1").grid(row=1,column=0)
         Button(self, font=TEXT_FONT,
-            command=lambda:self._set_anchor(1), text="Set anchor 2").grid(row=1,column=1)
+            command=lambda:MicroscopeMover.converse(lambda mover: self._set_anchor(mover, 1)),
+            text="Set anchor 2").grid(row=1,column=1)
         Button(self, font=TEXT_FONT,
-            command=lambda:self._set_anchor(2), text="Set anchor 3").grid(row=1,column=2)
+            command=lambda:MicroscopeMover.converse(lambda mover: self._set_anchor(mover, 2)),
+            text="Set anchor 3").grid(row=1,column=2)
 
         Label(self, font=TEXT_FONT, textvariable=self._anchor_coords_vars[0]).grid(row=2,column=0)
         Label(self, font=TEXT_FONT, textvariable=self._anchor_coords_vars[1]).grid(row=2,column=1)
@@ -55,12 +56,11 @@ class GUI(Frame):
             log.info("Anchors set")
             self.onconfirmanchors()
 
-    def _set_anchor(self,index:int) -> None:
-        if connection.get_status():
-            self._anchor_coords[index]=mover.get_coordinates()
-            coords: Coordinate | None=self._anchor_coords[index]
-            str_var:StringVar=self._anchor_coords_vars[index]
-            if coords is not None:
-                str_var.set("X: "+str(coords.x)+"\nY: "+str(coords.y))
-            log.info("Anchor %i set", index)
+    def _set_anchor(self, mover:MicroscopeMover, index:int) -> None:
+        self._anchor_coords[index]=mover.get_coordinates()
+        coords: Coordinate | None=self._anchor_coords[index]
+        str_var:StringVar=self._anchor_coords_vars[index]
+        if coords is not None:
+            str_var.set("X: "+str(coords.x)+"\nY: "+str(coords.y))
+        log.info("Anchor %i set", index)
                 

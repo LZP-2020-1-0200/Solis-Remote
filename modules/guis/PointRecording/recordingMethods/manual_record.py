@@ -2,10 +2,9 @@
 import logging
 from tkinter import Button, Frame, Misc
 
-from ....guis  import connection
 from ....classes import session_data
 from ....classes.coordinate import Coordinate
-from ....classes.mover  import mover
+from ....classes.mover  import MicroscopeMover
 from ....classes.event import CustomEvent
 from ....classes.logger import Logger
 from ....helpers.configuration import TEXT_FONT
@@ -20,7 +19,9 @@ class GUI(Frame):
 
         self.onsubmitpoints:CustomEvent=CustomEvent("manual_recordGUI.onsubmitpoints")
 
-        Button(self,text="Add point",command=self._reg_point,font=TEXT_FONT).grid(row=0,column=0)
+        Button(self,text="Add point",
+            command=lambda:MicroscopeMover.converse(self._reg_point),
+            font=TEXT_FONT).grid(row=0,column=0)
         Button(self,
             text="Undo last point",
             command=self._unreg_point,
@@ -33,11 +34,10 @@ class GUI(Frame):
             ).grid(row=1,column=0,columnspan=2)
         log.info("GUI init")
 
-    def _reg_point(self) -> None:
+    def _reg_point(self, mover:MicroscopeMover) -> None:
         """Adds a point"""
-        if connection.get_status():
-            coord:Coordinate=mover.get_coordinates()
-            session_data.add_data_point(coord)
+        coord:Coordinate=mover.get_coordinates()
+        session_data.add_data_point(coord)
 
     def _unreg_point(self) -> None:
         """Removes the point from memory"""
