@@ -1,15 +1,16 @@
+
 from modules.classes.coordinate import Coordinate
 from modules.helpers import translator
 
 SystemA:list[Coordinate]=[
-    Coordinate(0,0),
-    Coordinate(0,2),
-    Coordinate(2,2)
+    Coordinate(49311,-45811),
+    Coordinate(58936,-35966),
+    Coordinate(49137,-36065)
 ]
 SystemB:list[Coordinate]=[
-    Coordinate(-1,-3),
-    Coordinate(-1,-5),
-    Coordinate(-3,-5)
+    Coordinate(0,0),
+    Coordinate(0,-1),
+    Coordinate(-1,0)
 ]
 while True:
     print("Select mode\n1-from A to B\n2-from B to A\n3-exit")
