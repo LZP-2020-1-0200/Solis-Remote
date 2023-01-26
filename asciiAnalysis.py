@@ -1,3 +1,4 @@
+#pylint: disable=all
 #type: ignore
 
 import os.path
@@ -6,10 +7,10 @@ import json
 from tkinter import filedialog
 import re
 import matplotlib.pyplot as plt
+from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 from numpy import polynomial
-from typing import Any
 
 def get_cmap(n:int, name:str='hsv'):
     '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct 
