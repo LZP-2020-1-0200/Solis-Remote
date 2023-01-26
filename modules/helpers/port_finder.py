@@ -104,7 +104,7 @@ def find_stage_or_default() -> tuple[bool, str]:
         return True, found_port
 
 def find_loop_back_or_default() -> tuple[bool, str, str]:
-    """Locates loopback ports or defaults to previously found ports, 
+    """Locates loopback ports or defaults to previously found ports,
     bool is True if loopback was found,
     False if neither valid ports nor a default ports were found
     """
