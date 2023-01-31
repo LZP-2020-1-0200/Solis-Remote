@@ -15,7 +15,7 @@ log:logging.Logger=Logger(__name__).get_logger()
 oncapture:CustomEvent=CustomEvent("experiment_launcher.oncapture")
 
 def _run(mover:MicroscopeMover) -> None:
-    """Launches an experiment and stores all recorded points in a folder"""
+    """Launches an experiment and stores all recorded points in a folder."""
     log.info("Launching experiment")
     #finds the lowest unused experiment number
     i:int=0
@@ -53,12 +53,14 @@ def _prompt_medium() -> str:
     top_level: Toplevel=Toplevel()
     top_level.title("Select an environment")
     experiment_medium: StringVar=StringVar()
-    def on_closing() -> None:
-        experiment_medium.set("")
-    top_level.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # change the variable to stop blocking if the popup is closed
+    top_level.protocol("WM_DELETE_WINDOW", lambda:experiment_medium.set(""))
+
     #lists all environments in a square
-    square_size: int=math.ceil(math.sqrt(len(configuration.get_media())))
-    for ind, med in enumerate(configuration.get_media()):
+    media: list[str] = configuration.get_media()
+    square_size: int=math.ceil(math.sqrt(len(media)))
+    for ind, med in enumerate(media):
         Radiobutton(top_level, text = med, variable = experiment_medium, indicatoron=False,
                 value = med,
                 background = "light blue").grid(

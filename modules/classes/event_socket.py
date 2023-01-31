@@ -4,13 +4,13 @@ import threading
 from enum import IntEnum
 
 PORT_NUMBER:int=56123
-
+TCP_V2=True
 
 class SockEventType(IntEnum):
     """A basic enum that really is only meant
     for sending a CAPTURE signal to the gx capture pc
+    Further entries to the enum can be added for additional devices and events
     """
-    SET_DIR = 1
     CAPTURE = 2
 
 class EventSocket():
@@ -56,15 +56,17 @@ class EventSocket():
         """Sends bytes to all connections,
         removes connection from list if message fails to deliver
         """
+        msg_size: int = len(message)
+        # toggleable message length prefix while in transition phase
+        full_msg: bytes = msg_size.to_bytes(4,'big') if TCP_V2 else b''
+        full_msg=full_msg+message
         removables:list[socket.socket]=[]
         for sock in self.__out_sockets:
-            rem:int=len(message)
+            rem:int=len(full_msg)
             head_failed:bool=False
             try:
                 while rem!=0:
-                    #print(message[-rem:])
-                    b_sent:int=sock.send(message[-rem:])
-                    #print(rem, b_sent)
+                    b_sent:int=sock.send(full_msg[-rem:])
                     if b_sent==0:
                         head_failed=True
                         break
@@ -86,5 +88,7 @@ if __name__=="__main__":
     server_sock:EventSocket=EventSocket()
     print("server created")
     while 1:
-        input()
-        server_sock.send_event(SockEventType.CAPTURE)
+        if len(input())==0:
+            server_sock.send_event(SockEventType.CAPTURE)
+        else:
+            server_sock.broadcast(b'random_msg testing')

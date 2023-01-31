@@ -9,7 +9,10 @@ from .logger import Logger
 log:logging.Logger = Logger(__name__).get_logger()
 
 class CustomEvent():
-    """Created to call multiple functions.
+    """An implementation of events without asynchronous execution.
+
+    Created to call multiple functions.
+
     Calling the object calls all bound functions.
     """
     def __init__(self, name:str) -> None:
@@ -22,13 +25,13 @@ class CustomEvent():
                 "An event with no name was created. An empty constructor is considered deprecated.")
             name="<Unnamed>"
         # remove newlines to parse it to packets
-        filtered_name=name.replace("\n"," ")
+        filtered_name: str=name.replace("\n"," ")
         self.bind(lambda: log.info("%s called", filtered_name))
         self.name:str=filtered_name
 
     def bind(self, func:Callable[[],Any|None]) -> None:
         """Binds `func` to the event,
-        `func` will be called when calling this event.
+        `func` will be called when event fires.
         """
         self._bound_functions.append(func)
 

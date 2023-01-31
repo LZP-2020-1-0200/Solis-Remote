@@ -2,7 +2,7 @@
 
 import os
 import logging
-from tkinter import Label, Button, Misc, Frame
+from tkinter import Label, Button, Misc, Frame, messagebox
 
 from ...helpers.configuration import TITLE_FONT, REFERENCE_NAMES, TEXT_FONT
 
@@ -58,3 +58,4 @@ class GUI(Frame):
         log.info("Starting spectrogram")
         mover.take_capture(filename)
         log.info("Finished spectrogram")
+        messagebox.showinfo(title="Success",message="Reference acquisition complete.")#type: ignore

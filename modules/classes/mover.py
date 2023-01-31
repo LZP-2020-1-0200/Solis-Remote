@@ -24,8 +24,22 @@ class MicroscopeStatus(Enum):
 
 class MicroscopeMover:
     """
-    A singleton class of the mover.py module instantiated only by `mover`
-    Does not ensure that a connection is there.
+    A singleton class of the mover.py module instantiated privately.
+    The only way of communication is through `MicroscopeMover.converse`,
+    where callback gets called if a connection was established.
+    On failure, triggers an event.
+
+    Possible events:
+    - `ontimeout` if a connection exists, but pings timed out
+    - `onconnect` when a connection is created
+    - `ondisconnect` when a connection is terminated
+    - `onsolisunresponsive` when the script in SOLIS did not respond in time
+    (`ontimeout` is called as well)
+    - `onstageunresponsive` when the script in SOLIS responds,
+    however the stage was either disconnected or reading data at the time,
+    thus not being able to respond in time
+    (`ontimeout` is called as well)
+
     May block endlessly if messages are sent to a severed connection
     """
 
@@ -63,16 +77,18 @@ class MicroscopeMover:
             micro_m = MicroscopeMover.__instance
         else:
             micro_m = MicroscopeMover()
-        if micro_m.connect(LOOPBACK_A):
+        if MicroscopeMover._connect(micro_m,LOOPBACK_A):
             logger.info("Converse start.")
             callback(micro_m)
             logger.info("Converse end.")
-            micro_m.close_connection()
+            MicroscopeMover._close_connection(micro_m)
             return MicroscopeStatus.CONNECTED
-        return micro_m.ping()
+        fail_status: MicroscopeStatus = micro_m.ping_all()
+        MicroscopeMover._close_connection(micro_m)
+        return fail_status
 
-
-    def connect(self, com_port: str) -> bool:
+    @staticmethod
+    def _connect(micro_m: 'MicroscopeMover', com_port: str) -> bool:
         """
         Connects to the serial port `com_port`, returns whether connection has been established
         `com_port`: The port to which the mover should connect to e.g. `COM3`
@@ -84,7 +100,7 @@ class MicroscopeMover:
 
         # Attempt connection
         try:
-            self.serial = serial.Serial(port=com_port, baudrate=BAUDRATE)
+            micro_m.serial = serial.Serial(port=com_port, baudrate=BAUDRATE)
             logger.info("Successfully connected to %s", com_port)
 
         except serial.SerialException as exception:
@@ -96,13 +112,13 @@ class MicroscopeMover:
             return False
 
         #test connection
-        self.last_status=self._ping_all()
-        if self.last_status==MicroscopeStatus.CONNECTED:
-            self.set_speed(40)
+        micro_m.last_status=micro_m.ping_all()
+        if micro_m.last_status==MicroscopeStatus.CONNECTED:
+            micro_m.set_speed(40)
             return True
 
         return False
-    def _ping_all(self)->MicroscopeStatus:
+    def ping_all(self)->MicroscopeStatus:
         """
         Pings SOLIS and the stage to check the connection status.
         Does not close the connection.
@@ -123,6 +139,7 @@ class MicroscopeMover:
             if len(response)==0:
                 logger.info("SOLIS unresponsive.")
                 MicroscopeMover.onsolisunresponsive()
+                MicroscopeMover.ontimeout()
                 self.serial.write_timeout=previous_write_timeout
                 self.serial.timeout=previous_timeout
                 return MicroscopeStatus.SOLIS_UNRESPONSIVE
@@ -133,6 +150,7 @@ class MicroscopeMover:
             if not response.isnumeric():
                 logger.info("Stage unresponsive")
                 MicroscopeMover.onstageunresponsive()
+                MicroscopeMover.ontimeout()
                 self.serial.write_timeout=previous_write_timeout
                 self.serial.timeout=previous_timeout
                 return MicroscopeStatus.STAGE_UNRESPONSIVE
@@ -146,20 +164,19 @@ class MicroscopeMover:
         logger.info("Port is closed")
         MicroscopeMover.ondisconnect()
         return MicroscopeStatus.DISCONNECTED
-    def ping(self)->MicroscopeStatus:
+    def _test_status(self)->MicroscopeStatus:
         """Pings SOLIS and the stage to check the connection status.
         Closes the connection if timeout is discovered.
         """
 
         # ping the stage only if it should be connected
         if self.last_status==MicroscopeStatus.CONNECTED:
-            self.last_status=self._ping_all()
+            self.last_status=self.ping_all()
 
         # close the connection if something is unresponsive
         if (    self.last_status==MicroscopeStatus.SOLIS_UNRESPONSIVE or
                 self.last_status==MicroscopeStatus.STAGE_UNRESPONSIVE):
-            self.close_connection()
-            self.ontimeout()# call timeout event
+            MicroscopeMover._close_connection(self)
 
         return self.last_status
 
@@ -252,11 +269,12 @@ class MicroscopeMover:
         self.serial.write(f"RUN {filename}\r".encode("utf-8"))#type: ignore
         self.serial.read_until(b"\r")#type: ignore
 
-    def close_connection(self) -> None:
+    @staticmethod
+    def _close_connection(micro_m:'MicroscopeMover') -> None:
         """
         Closes the connection to the serial port
         """
-        self.serial.close()
+        micro_m.serial.close()
         logger.info("Connection terminated")
 
     def send_custom_command(self, cmd:bytes)->bytes:
@@ -275,7 +293,7 @@ class MicroscopeMover:
         self.serial.write(cmd+b"\r")#type: ignore
 
         # custom commands should not be used, this is logged as an error
-        logger.error("Sent custom command: \"%s\"", cmd)
+        logger.warning("Sent custom command: \"%s\"", cmd)
 
         #block until respnse received
         return self.serial.read_until(b"\r")#type: ignore
