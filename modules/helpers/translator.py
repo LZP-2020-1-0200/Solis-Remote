@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from ..classes import Coordinate
+from ..classes.coordinate import Coordinate
 
 def anchor_translate(
         local_anchors:list[Coordinate],

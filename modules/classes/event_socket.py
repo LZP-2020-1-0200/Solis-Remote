@@ -12,6 +12,7 @@ class SockEventType(IntEnum):
     Further entries to the enum can be added for additional devices and events
     """
     CAPTURE = 2
+    EXPERIMENT_ID = 0
 
 class EventSocket():
     """A singleton that creates TCP connections and sends events"""
@@ -32,19 +33,20 @@ class EventSocket():
             self.__socket.bind(('',PORT_NUMBER))
             self.__socket.listen(5)
             self.__out_sockets:list[socket.socket]=[]
-            self.__accept_cons:bool=True
+            self.__stop_accepting:threading.Event=threading.Event()
             # create a seperate thread that accepts all incoming connections.
             # this thread get's killed on program exit
-            self.__acceptor:threading.Thread=threading.Thread(target=self.__accept,daemon=True)
+            self.__acceptor:threading.Thread=threading.Thread(target=self.__accept)
             self.__acceptor.start()
             EventSocket.__generated=True
 
     def __del__(self) -> None:
-        self.__accept_cons=False
+        self.__stop_accepting.set()
         self.__acceptor.join()
+        EventSocket.__instance=None
 
     def __accept(self) -> None:
-        while self.__accept_cons:
+        while not self.__stop_accepting.is_set():
             incoming_socket:socket.socket
             try:
                 incoming_socket, _ = self.__socket.accept()
@@ -84,11 +86,31 @@ class EventSocket():
         """Broadcasts an event to all connections"""
         self.broadcast(event.to_bytes(length=1, byteorder='big'))
 
+    def ask_capture(self, point_id:int):
+        """sends a broadcast that orders a capture"""
+        self.broadcast(
+            SockEventType.CAPTURE.to_bytes(length=1,byteorder='big')+
+            point_id.to_bytes(length=4, byteorder='big'))
+
+    # TODO: integrate experiments into capture
+    def set_experiment(self, experiment_id:int):
+        """sends a broadcast that signals a change in experiment"""
+        self.broadcast(
+            SockEventType.EXPERIMENT_ID.to_bytes(length=1,byteorder='big')+
+            experiment_id.to_bytes(length=2,byteorder='big'))
+
+
 if __name__=="__main__":
     server_sock:EventSocket=EventSocket()
     print("server created")
-    while 1:
-        if len(input())==0:
-            server_sock.send_event(SockEventType.CAPTURE)
-        else:
-            server_sock.broadcast(b'random_msg testing')
+    try:
+        while 1:
+            i = input()
+            if len(i)==0:
+                server_sock.send_event(SockEventType.CAPTURE)
+            elif i.isnumeric():
+                server_sock.set_experiment(int(i))
+            else:
+                server_sock.broadcast(b'random_msg testing')
+    finally:
+        del server_sock

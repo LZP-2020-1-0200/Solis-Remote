@@ -4,7 +4,7 @@ import os
 from typing import Literal
 import logging
 from tkinter import Frame, Button, Label, StringVar, Toplevel, Radiobutton, Misc
-from ...classes import MicroscopeMover, session_data, EventSocket, SockEventType, CustomEvent
+from ...classes import MicroscopeMover, session_data, EventSocket, CustomEvent
 from ...helpers import configuration
 from ...helpers.configuration import TEXT_FONT
 
@@ -37,13 +37,14 @@ def _run(mover:MicroscopeMover) -> None:
             relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
             session_data.add_experiment(relative_path,medium)
             log.info("Starting experiment")
-
             #launch the experiment
             mover.set_output_directory(experiment_dir)
-            for point in session_data.data_struct.local_points:
-
+            for ind, point in enumerate(session_data.data_struct.local_points):
+                #resend experiment number in case the photographer has to be reset
+                #TODO: Integrate experiment setting inro capture message
+                EventSocket().set_experiment(len(session_data.data_struct.experiments)-1)
                 mover.set_coordinates(point.coordinate)
-                EventSocket().send_event(event=SockEventType.CAPTURE)
+                EventSocket().ask_capture(ind)
                 mover.take_capture(point.filename)
         else:
             log.info("Environment was not selected")

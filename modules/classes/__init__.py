@@ -6,3 +6,4 @@ from .event_socket import EventSocket as EventSocket, SockEventType as SockEvent
 from .logger import Logger as Logger
 from .mover import MicroscopeMover as MicroscopeMover, MicroscopeStatus as MicroscopeStatus
 from .scene_switcher import SceneSwitcher as SceneSwitcher
+from .file_transfer_socket import FTSocket as FTSocket
