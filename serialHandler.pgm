@@ -1,4 +1,4 @@
-configDir$="C:/Users/optika/Documents/SolisRepo/SOLIS.cfg"
+configDir$="P:\Solis-Remote\SOLIS.cfg"
 SOLISresponse$=""
 SaveDir$=""
 stagePortNumber=2
