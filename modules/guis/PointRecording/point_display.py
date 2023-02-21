@@ -67,8 +67,8 @@ class GUI(Frame):
             scale:float=(CANVAS_SIZE-2*CANVAS_PADDING)/max_size
             i:int=1
             for coord in points:
-                x_coord: float=CANVAS_SIZE/2  + ( (coord.x-(min_x+(size_x/2)))*scale )
-                y_coord: float=CANVAS_SIZE/2  + ( (coord.y-(min_y+(size_y/2)))*scale )
+                x_coord: float=CANVAS_SIZE/2  - ( (coord.x-(min_x+(size_x/2)))*scale )
+                y_coord: float=CANVAS_SIZE/2  - ( (coord.y-(min_y+(size_y/2)))*scale )
                 self._canvas.create_oval(
                     x_coord-POINT_SIZE/2,
                     y_coord-POINT_SIZE/2,
@@ -90,8 +90,7 @@ class GUI(Frame):
                 3,CANVAS_SIZE-CANVAS_PADDING/2,
                 rounded10*scale+3,CANVAS_SIZE-CANVAS_PADDING/2,
                 fill="black")
-            if self._size_label is not None:
-                self._size_label.config(text=str(rounded10)+"μm")
+            self._size_label.config(text=str(rounded10)+"μm")
 
         # because the scale doesn't make sense when the size is 0,
         # the points are all drawn in the center when that is the case
