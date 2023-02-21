@@ -4,7 +4,7 @@ import logging
 
 from ..helpers.configuration import TEXT_FONT
 
-from ..classes import session_data, Logger, CustomEvent, FTSocket
+from ..classes import session_data, Logger, CustomEvent
 
 
 
@@ -42,7 +42,6 @@ class GUI(Frame):
 
         session_data.data_struct.dir=session_directory
         if session_data.load():
-            FTSocket()
             self.onload()
             self.ontomenu()
 
@@ -58,7 +57,6 @@ class GUI(Frame):
         session_data.data_struct.dir=session_directory
         session_data.session_setup()
         if session_data.load():
-            FTSocket()
             self.oncreate()
             self.ontomenu()
     

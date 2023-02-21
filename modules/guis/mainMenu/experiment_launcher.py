@@ -4,7 +4,7 @@ import os
 from typing import Literal
 import logging
 from tkinter import Frame, Button, Label, StringVar, Toplevel, Radiobutton, Misc
-from ...classes import MicroscopeMover, session_data, EventSocket, CustomEvent
+from ...classes import MicroscopeMover, session_data, CustomEvent, publisher
 from ...helpers import configuration
 from ...helpers.configuration import TEXT_FONT
 
@@ -39,12 +39,18 @@ def _run(mover:MicroscopeMover) -> None:
             log.info("Starting experiment")
             #launch the experiment
             mover.set_output_directory(experiment_dir)
+            publisher.publish_json("experiment", {
+                "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                "experiment_number":len(session_data.data_struct.experiments)-1
+            })
             for ind, point in enumerate(session_data.data_struct.local_points):
-                #resend experiment number in case the photographer has to be reset
-                #TODO: Integrate experiment setting inro capture message
-                EventSocket().set_experiment(len(session_data.data_struct.experiments)-1)
                 mover.set_coordinates(point.coordinate)
-                EventSocket().ask_capture(ind)
+                publisher.publish_json("capture", {
+                    "experiment_number":len(session_data.data_struct.experiments)-1,
+                    "picture_name":point.filename,
+                    "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                    "point_number":ind
+                    })
                 mover.take_capture(point.filename)
         else:
             log.info("Environment was not selected")

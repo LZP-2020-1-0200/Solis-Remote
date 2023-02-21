@@ -3,7 +3,7 @@
 from tkinter import Tk, Frame, mainloop, messagebox, Menu, Toplevel
 import logging
 
-from modules.classes import EventSocket, SceneSwitcher, Logger, MicroscopeMover, FTSocket
+from modules.classes import SceneSwitcher, Logger, MicroscopeMover, publisher
 from modules.classes.session_data import data_struct, load_last_anchors
 from modules.guis import session_loader, anchors, go_to_nth, go_to_anchors
 from modules.guis.PointRecording import point_record
@@ -16,8 +16,8 @@ from modules.helpers.configuration import (
     )
 
 # generate the instances
-EventSocket()
-FTSocket()
+#EventSocket()
+#FTSocket()
 
 
 # add messagebox notifications if MM fails to connect
@@ -155,3 +155,7 @@ master.update()
 # or mouse interrupt
 master.config(menu=menubar)
 mainloop()
+
+with publisher.stop_lock:
+    publisher.stop_join=True
+publisher.join_thread.join()
