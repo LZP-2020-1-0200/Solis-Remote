@@ -3,9 +3,8 @@ import math
 import os
 from typing import Literal
 import logging
-from tkinter import Frame, Button, Label, StringVar, Toplevel, messagebox, Radiobutton, Misc
-from .. import connection
-from ...classes import mover, session_data, EventSocket, SockEventType, CustomEvent
+from tkinter import Frame, Button, Label, StringVar, Toplevel, Radiobutton, Misc
+from ...classes import MicroscopeMover, session_data, CustomEvent, publisher
 from ...helpers import configuration
 from ...helpers.configuration import TEXT_FONT
 
@@ -15,55 +14,60 @@ log:logging.Logger=Logger(__name__).get_logger()
 
 oncapture:CustomEvent=CustomEvent("experiment_launcher.oncapture")
 
-def _run() -> None:
-    """Launches an experiment and stores all recorded points in a folder"""
+def _run(mover:MicroscopeMover) -> None:
+    """Launches an experiment and stores all recorded points in a folder."""
     log.info("Launching experiment")
-    if not messagebox.askyesno("","Is SOLIS script on?"):#type: ignore
-        log.info("User cancelled: SOLIS is off")
-        return
-    if connection.get_status():
-        #finds the lowest unused experiment number
-        i:int=0
-        experiment_dir: str=""
-        while True:
-            experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
-            if not os.path.isdir(experiment_dir):
-                os.mkdir(experiment_dir)
-                break
-            i+=1
+    #finds the lowest unused experiment number
+    i:int=0
+    experiment_dir: str=""
+    while True:
+        experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
+        if not os.path.isdir(experiment_dir):
+            os.mkdir(experiment_dir)
+            break
+        i+=1
 
-        if experiment_dir is not "":
-            log.info("Experiment directory found")
+    if experiment_dir != "":
+        log.info("Experiment directory found")
 
-            #prompt the user for a medium
-            medium:str=_prompt_medium()
-            if medium!="":
-                #add the experiment to sessionData and close the popup
-                relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
-                session_data.add_experiment(relative_path,medium)
-                log.info("Starting experiment")
-
-                #launch the experiment
-                mover.set_output_directory(experiment_dir)
-                for point in session_data.data_struct.local_points:
-
-                    mover.set_coordinates(point.coordinate)
-                    EventSocket().send_event(event=SockEventType.CAPTURE)
-                    mover.take_capture(point.filename)
-            else:
-                log.info("Environment was not selected")
+        #prompt the user for a medium
+        medium:str=_prompt_medium()
+        if medium!="":
+            #add the experiment to sessionData and close the popup
+            relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
+            session_data.add_experiment(relative_path,medium)
+            log.info("Starting experiment")
+            #launch the experiment
+            mover.set_output_directory(experiment_dir)
+            publisher.publish_json("experiment", {
+                "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                "experiment_number":len(session_data.data_struct.experiments)-1
+            })
+            for ind, point in enumerate(session_data.data_struct.local_points):
+                mover.set_coordinates(point.coordinate)
+                publisher.publish_json("capture", {
+                    "experiment_number":len(session_data.data_struct.experiments)-1,
+                    "picture_name":point.filename,
+                    "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                    "point_number":ind
+                    })
+                mover.take_capture(point.filename)
+        else:
+            log.info("Environment was not selected")
 
 def _prompt_medium() -> str:
     #Generates an environment popup
     top_level: Toplevel=Toplevel()
     top_level.title("Select an environment")
     experiment_medium: StringVar=StringVar()
-    def on_closing() -> None:
-        experiment_medium.set("")
-    top_level.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # change the variable to stop blocking if the popup is closed
+    top_level.protocol("WM_DELETE_WINDOW", lambda:experiment_medium.set(""))
+
     #lists all environments in a square
-    square_size: int=math.ceil(math.sqrt(len(configuration.get_media())))
-    for ind, med in enumerate(configuration.get_media()):
+    media: list[str] = configuration.get_media()
+    square_size: int=math.ceil(math.sqrt(len(media)))
+    for ind, med in enumerate(media):
         Radiobutton(top_level, text = med, variable = experiment_medium, indicatoron=False,
                 value = med,
                 background = "light blue").grid(
@@ -112,7 +116,7 @@ class GUI(Frame):
         self.start_button: Button = Button(self,
             text="Launch experiment",
             font=TEXT_FONT,
-            command=_run)
+            command=lambda:MicroscopeMover.converse(_run))
         self.start_button.grid(row=0,column=1, padx=5,sticky="news")
 
         checklist: Frame=Frame(self)

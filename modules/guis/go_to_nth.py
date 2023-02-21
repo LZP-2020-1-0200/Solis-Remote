@@ -2,9 +2,8 @@
 import logging
 from tkinter import Frame, Entry, Button, Misc, StringVar, messagebox
 from .PointRecording import point_display
-from . import connection
 from ..classes.session_data import data_struct
-from ..classes import mover, Logger
+from ..classes import MicroscopeMover, Logger
 
 log:logging.Logger=Logger(__name__).get_logger()
 
@@ -34,8 +33,8 @@ class GUI(Frame):
         if self.last_index>=len(data_struct.local_points) or self.last_index<0:
             valid_num=False
         if valid_num:
-            if connection.get_status() and data_struct.local_points[self.last_index] is not None:
-                mover.set_coordinates(data_struct.local_points[self.last_index].coordinate)
+            if data_struct.local_points[self.last_index] is not None:
+                MicroscopeMover.converse(lambda mover:mover.set_coordinates(data_struct.local_points[self.last_index].coordinate))
         else:
             messagebox.showwarning("Unable to go to point",#type: ignore
                 "Entered index is invalid.")
