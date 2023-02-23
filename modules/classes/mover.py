@@ -1,7 +1,7 @@
 """Contains the class responsible for connecting to SOLIS and stage control"""
 import time
 import logging
-from typing import Callable
+from typing import Callable, Any
 from enum import Enum
 import serial #type: ignore
 import serial.tools.list_ports #type: ignore
@@ -21,6 +21,15 @@ class MicroscopeStatus(Enum):
     STAGE_UNRESPONSIVE  =2
     CONNECTED           =3
     DISCONNECTED        =4
+
+class MicroscopeUnavailableException(Exception):
+    """Called when an operation is called
+    but the last known status of the mover is disconnected
+    """
+
+class MicroscopeAlreadyActive(Exception):
+    """Called when the microscope mover is already engaged,
+    but something is attempting to engage it again."""
 
 class MicroscopeMover:
     """
@@ -51,21 +60,38 @@ class MicroscopeMover:
     onstageunresponsive:CustomEvent=CustomEvent("MicroscopeMover.onstageunresponsive")
     onconnect:CustomEvent=CustomEvent("MicroscopeMover.onconnect")
 
-    def __init__(self) -> None:
+    def __new__(cls) -> 'MicroscopeMover':
         if MicroscopeMover.__instance is None:
-            MicroscopeMover.__instance=self
-            self.serial: serial.Serial = serial.Serial()
-            self.last_status:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
+            MicroscopeMover.__instance=object.__new__(cls)
+        return MicroscopeMover.__instance
+    def __init__(self) -> None:
+        self.last_status:MicroscopeStatus=MicroscopeStatus.DISCONNECTED
+        self.serial:serial.Serial = serial.Serial()
+        self.connection_active:bool=False
+    
+
+    def __enter__(self):
+        if self.connection_active:
+            logger.error("Microscope activated twice simultaneously")
+            raise MicroscopeAlreadyActive()
+        MicroscopeMover._connect(self,LOOPBACK_A)
+        logger.info("Accessing microscope")
+        self.connection_active=True
+        return self
+    
+    def __exit__(self, exc_t:type, val:Any, traceback:Any):
+        self.connection_active=False
+        if exc_t == MicroscopeUnavailableException:
+            logger.info("Microscope unavailable")
         else:
-            try:
-                raise Exception("Creating new instances of MicroscopeMover is forbidden")
-            finally:
-                logger.error("An attempt at creating a new MicroscopeMover instance was made")
+            MicroscopeMover._close_connection(self)
+            logger.info("Microscope control released")
 
     @staticmethod
     def converse(
             callback:'Callable[[MicroscopeMover], None]') -> MicroscopeStatus:
-        """Attempts to connect to the stage and SOLIS, if successful,
+        """deprecated
+        Attempts to connect to the stage and SOLIS, if successful,
         calls `callback`.
 
         To supply more parameters to the target function,
@@ -187,6 +213,8 @@ class MicroscopeMover:
         NOTE: this method does not check if the stage is moving
         and can return the coordinates while the stage is in motion
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         self.serial.write("P \r".encode())#type: ignore
         coord_string: list[str] = self.serial.read_until(b"\r").decode().split(",")[:2]#type: ignore
         coord: Coordinate = Coordinate(int(coord_string[0]), int(coord_string[1]))
@@ -200,6 +228,8 @@ class MicroscopeMover:
         `cord`: The absolute coordinates to where should the stage be moved to
         returns True if successful
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         rounded_coord: Coordinate=coord.rounded()
         logger.info("Going to: %i, %i", rounded_coord.x, rounded_coord.y)
         string: str = f"G,{rounded_coord.x},{rounded_coord.y} \r"
@@ -213,6 +243,8 @@ class MicroscopeMover:
         """
         Resets the stage to point (0,0)
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         logger.info("Resetting stage position")
         self.serial.write(b"PS,0,0 \r")#type: ignore
         self.serial.read(2)
@@ -224,8 +256,8 @@ class MicroscopeMover:
 
         `coord`: the coordinates describing relative movement
         """
-
-
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         logger.info("Moving by: %i, %i", coord.x, coord.y)
         string: str = f"GR {coord.x},{coord.y} \r"
         self.serial.write(string.encode("utf-8"))#type: ignore
@@ -237,6 +269,8 @@ class MicroscopeMover:
 
         `speed`: an integer corresponding to the speed
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         string: bytes = f"SMS,{speed} \r".encode()
         self.serial.write(string)#type: ignore
         self.serial.read_until(b"\r")#type: ignore
@@ -249,6 +283,8 @@ class MicroscopeMover:
 
         `directory`: Absolute path to where future saving should accur
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         logger.info("Changing SOLIS output directory")
         #Change the target directory
         self.serial.write(f"SDIR {directory}\r".encode("utf-8"))#type: ignore
@@ -264,7 +300,8 @@ class MicroscopeMover:
 
         `filename`: the name of the file set
         """
-
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         logger.info("Capturing and saving in %s", filename)
         self.serial.write(f"RUN {filename}\r".encode("utf-8"))#type: ignore
         self.serial.read_until(b"\r")#type: ignore
@@ -289,6 +326,8 @@ class MicroscopeMover:
 
         `cmd`: The command that is sent to the SOLIS script
         """
+        if self.last_status!=MicroscopeStatus.CONNECTED:
+            raise MicroscopeUnavailableException()
         #send command
         self.serial.write(cmd+b"\r")#type: ignore
 

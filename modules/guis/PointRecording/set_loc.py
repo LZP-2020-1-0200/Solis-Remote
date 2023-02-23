@@ -3,7 +3,7 @@ from tkinter import Frame, StringVar, Label, Button, Entry, Misc
 from typing import Literal
 import logging
 
-from ...classes import Coordinate, Logger, MicroscopeMover
+from ...classes import Coordinate, Logger, MicroscopeMover, MicroscopeStatus
 
 from ...helpers.configuration import TEXT_FONT
 from ...helpers.configuration import TITLE_FONT
@@ -26,28 +26,28 @@ class GUI(Frame):
         button_frame: Frame=Frame(self)
         button_frame.grid(row=1,column=0,columnspan=2)
         Button(button_frame,text="🢄",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, -1,-1))
+            command=lambda: self._rel_move( -1,-1)
             ).grid(row=1,column=0,sticky="news")
         Button(button_frame,text="🢁",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, 0,-1))
+            command=lambda: self._rel_move( 0,-1)
             ).grid(row=1,column=1,sticky="news")
         Button(button_frame,text="🢅",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, 1,-1))
+            command=lambda: self._rel_move( 1,-1)
             ).grid(row=1,column=2,sticky="news")
         Button(button_frame,text="🢀",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, -1,0))
+            command=lambda: self._rel_move( -1,0)
             ).grid(row=2,column=0,sticky="news")
         Button(button_frame,text="🢂",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, 1,0))
+            command=lambda: self._rel_move( 1,0)
             ).grid(row=2,column=2,sticky="news")
         Button(button_frame,text="🢇",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, -1,1))
+            command=lambda: self._rel_move( -1,1)
             ).grid(row=3,column=0,sticky="news")
         Button(button_frame,text="🢃",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, 0,1))
+            command=lambda: self._rel_move( 0,1)
             ).grid(row=3,column=1,sticky="news")
         Button(button_frame,text="🢆",font=BUTTON_FONT,
-            command=lambda: MicroscopeMover.converse(lambda mover: self._rel_move(mover, 1,1))
+            command=lambda: self._rel_move( 1,1)
             ).grid(row=3,column=2,sticky="news")
 
 
@@ -62,10 +62,12 @@ class GUI(Frame):
         step_entry.grid(row = 4, column = 1, padx=5, pady = 5)
         log.info("GUI init")
 
-    def _rel_move(self, mover:MicroscopeMover, x_coord:int, y_coord:int)->None:
+    def _rel_move(self, x_coord:int, y_coord:int)->None:
         """Moves the stage by x and y"""
-        relative_coord: Coordinate=Coordinate(x_coord,y_coord)*int(self._step_str_var.get())
-        mover.set_relative_coordinates(relative_coord)
+        with MicroscopeMover() as mover:
+            if mover.last_status==MicroscopeStatus.CONNECTED:
+                relative_coord: Coordinate=Coordinate(x_coord,y_coord)*int(self._step_str_var.get())
+                mover.set_relative_coordinates(relative_coord)
 
 
     def _set_location_handler(self, mover:MicroscopeMover, x_coord:int, y_coord:int) -> None:

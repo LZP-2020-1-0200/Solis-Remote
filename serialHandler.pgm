@@ -1,9 +1,10 @@
-configDir$="P:\Solis-Remote\SOLIS.cfg"
+configDir$="P:\Solis-Development\SOLIS.cfg"
 SOLISresponse$=""
 SaveDir$=""
 stagePortNumber=2
 appPortNumber=3
 endReached=0
+print("starting")
 while (endReached==0)
 	read(configDir$, configLine$)
 	if (len(configLine$)>0) then

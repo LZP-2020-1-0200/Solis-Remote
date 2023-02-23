@@ -4,7 +4,7 @@ import os
 from typing import Literal
 import logging
 from tkinter import Frame, Button, Label, StringVar, Toplevel, Radiobutton, Misc
-from ...classes import MicroscopeMover, session_data, CustomEvent, publisher
+from ...classes import MicroscopeMover, session_data, CustomEvent, publisher, MicroscopeStatus
 from ...helpers import configuration
 from ...helpers.configuration import TEXT_FONT
 
@@ -14,46 +14,49 @@ log:logging.Logger=Logger(__name__).get_logger()
 
 oncapture:CustomEvent=CustomEvent("experiment_launcher.oncapture")
 
-def _run(mover:MicroscopeMover) -> None:
+def _run() -> None:
     """Launches an experiment and stores all recorded points in a folder."""
-    log.info("Launching experiment")
-    #finds the lowest unused experiment number
-    i:int=0
-    experiment_dir: str=""
-    while True:
-        experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
-        if not os.path.isdir(experiment_dir):
-            os.mkdir(experiment_dir)
-            break
-        i+=1
+    
+    with MicroscopeMover() as mover:
+        if mover.last_status==MicroscopeStatus.CONNECTED:
+            log.info("Launching experiment")
+            #finds the lowest unused experiment number
+            i:int=0
+            experiment_dir: str=""
+            while True:
+                experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
+                if not os.path.isdir(experiment_dir):
+                    os.mkdir(experiment_dir)
+                    break
+                i+=1
 
-    if experiment_dir != "":
-        log.info("Experiment directory found")
+            if experiment_dir != "":
+                log.info("Experiment directory found")
 
-        #prompt the user for a medium
-        medium:str=_prompt_medium()
-        if medium!="":
-            #add the experiment to sessionData and close the popup
-            relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
-            session_data.add_experiment(relative_path,medium)
-            log.info("Starting experiment")
-            #launch the experiment
-            mover.set_output_directory(experiment_dir)
-            publisher.publish_json("experiment", {
-                "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
-                "experiment_number":len(session_data.data_struct.experiments)-1
-            })
-            for ind, point in enumerate(session_data.data_struct.local_points):
-                mover.set_coordinates(point.coordinate)
-                publisher.publish_json("capture", {
-                    "experiment_number":len(session_data.data_struct.experiments)-1,
-                    "picture_name":point.filename,
-                    "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
-                    "point_number":ind
+                #prompt the user for a medium
+                medium:str=_prompt_medium()
+                if medium!="":
+                    #add the experiment to sessionData and close the popup
+                    relative_path:str=os.path.relpath(experiment_dir,session_data.data_struct.dir)
+                    session_data.add_experiment(relative_path,medium)
+                    log.info("Starting experiment")
+                    #launch the experiment
+                    mover.set_output_directory(experiment_dir)
+                    publisher.publish_json("experiment", {
+                        "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                        "experiment_number":len(session_data.data_struct.experiments)-1
                     })
-                mover.take_capture(point.filename)
-        else:
-            log.info("Environment was not selected")
+                    for ind, point in enumerate(session_data.data_struct.local_points):
+                        mover.set_coordinates(point.coordinate)
+                        publisher.publish_json("capture", {
+                            "experiment_number":len(session_data.data_struct.experiments)-1,
+                            "picture_name":point.filename,
+                            "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                            "point_number":ind
+                            })
+                        mover.take_capture(point.filename)
+                else:
+                    log.info("Environment was not selected")
 
 def _prompt_medium() -> str:
     #Generates an environment popup
@@ -116,7 +119,7 @@ class GUI(Frame):
         self.start_button: Button = Button(self,
             text="Launch experiment",
             font=TEXT_FONT,
-            command=lambda:MicroscopeMover.converse(_run))
+            command=_run)
         self.start_button.grid(row=0,column=1, padx=5,sticky="news")
 
         checklist: Frame=Frame(self)
