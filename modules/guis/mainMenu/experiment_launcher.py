@@ -16,15 +16,17 @@ oncapture:CustomEvent=CustomEvent("experiment_launcher.oncapture")
 
 def _run() -> None:
     """Launches an experiment and stores all recorded points in a folder."""
-    
+
     with MicroscopeMover() as mover:
         if mover.last_status==MicroscopeStatus.CONNECTED:
             log.info("Launching experiment")
             #finds the lowest unused experiment number
             i:int=0
             experiment_dir: str=""
+            exp_num:str = ""
             while True:
-                experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", str(i).zfill(3))
+                exp_num=str(i).zfill(3)
+                experiment_dir=os.path.join(session_data.data_struct.dir,"experiments", exp_num)
                 if not os.path.isdir(experiment_dir):
                     os.mkdir(experiment_dir)
                     break
@@ -42,16 +44,18 @@ def _run() -> None:
                     log.info("Starting experiment")
                     #launch the experiment
                     mover.set_output_directory(experiment_dir)
-                    publisher.publish_json("experiment", {
-                        "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
-                        "experiment_number":len(session_data.data_struct.experiments)-1
-                    })
+
                     for ind, point in enumerate(session_data.data_struct.local_points):
+                        publisher.publish_json("experiment", {
+                            "img_dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", exp_num),"P:\\"),
+                            "dir":os.path.relpath(os.path.join(session_data.data_struct.dir, "experiments", exp_num),"P:\\"),
+                            "experiment_number":len(session_data.data_struct.experiments)-1
+                        })
                         mover.set_coordinates(point.coordinate)
                         publisher.publish_json("capture", {
                             "experiment_number":len(session_data.data_struct.experiments)-1,
                             "picture_name":point.filename,
-                            "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", str(i).zfill(3)),"P:\\"),
+                            "dir":os.path.relpath(os.path.join(session_data.data_struct.dir,"imgs", "experiments", exp_num),"P:\\"),
                             "point_number":ind
                             })
                         mover.take_capture(point.filename)
